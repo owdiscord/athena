@@ -2,7 +2,11 @@ import { GuildPluginData } from "vety";
 import { splitMessageIntoChunks } from "vety/helpers";
 import moment from "moment-timezone";
 import { Case } from "../../../data/entities/Case.js";
-import { convertDelayStringToMS, DBDateFormat, messageLink } from "../../../utils.js";
+import {
+  convertDelayStringToMS,
+  DBDateFormat,
+  messageLink,
+} from "../../../utils.js";
 import { TimeAndDatePlugin } from "../../TimeAndDate/TimeAndDatePlugin.js";
 import { caseAbbreviations } from "../caseAbbreviations.js";
 import { CasesPluginType } from "../types.js";
@@ -30,21 +34,59 @@ export async function getCaseSummary(
   let leftoverNotes = Math.max(0, theCase.notes.length - 1);
 
   for (let i = 1; i < theCase.notes.length; i++) {
-    if (reason.length >= CASE_SUMMARY_REASON_MAX_LENGTH - UPDATE_STR.length - INCLUDE_MORE_NOTES_THRESHOLD) break;
+    if (
+      reason.length >=
+      CASE_SUMMARY_REASON_MAX_LENGTH -
+        UPDATE_STR.length -
+        INCLUDE_MORE_NOTES_THRESHOLD
+    )
+      break;
     reason += ` ${UPDATE_STR} ${theCase.notes[i].body}`;
     leftoverNotes--;
   }
 
   if (reason.length > CASE_SUMMARY_REASON_MAX_LENGTH) {
-    const match = reason.slice(CASE_SUMMARY_REASON_MAX_LENGTH, 100).match(/(?:[.,!?\s]|$)/);
-    const nextWhitespaceIndex = match ? CASE_SUMMARY_REASON_MAX_LENGTH + match.index! : CASE_SUMMARY_REASON_MAX_LENGTH;
+    const match = reason
+      .slice(CASE_SUMMARY_REASON_MAX_LENGTH, 100)
+      .match(/(?:[.,!?\s]|$)/);
+    const nextWhitespaceIndex = match
+      ? CASE_SUMMARY_REASON_MAX_LENGTH + match.index!
+      : CASE_SUMMARY_REASON_MAX_LENGTH;
     const reasonChunks = splitMessageIntoChunks(reason, nextWhitespaceIndex);
-    reason = reasonChunks[0] + "...";
+    reason = reasonChunks[0];
+
+    // Sanitise case reasons to ensure codeblocks are properly closed in truncated case reasons
+    const tripleBacktickMatches = reason.match(/```/g);
+    const tripleBacktickCount = tripleBacktickMatches
+      ? tripleBacktickMatches.length
+      : 0;
+
+    // If odd number of triple backticks, we have an unclosed codeblock
+    if (tripleBacktickCount % 2 !== 0) {
+      reason += "```";
+    }
+
+    // Also check for single backticks (inline code)
+    const singleBacktickMatches = reason.match(/(?<!`)`(?!`)/g);
+    const singleBacktickCount = singleBacktickMatches
+      ? singleBacktickMatches.length
+      : 0;
+
+    // If odd number of single backticks (not part of triple), close it
+    if (singleBacktickCount % 2 !== 0) {
+      reason += "`";
+    }
+
+    reason += "...";
   }
 
   const timestamp = moment.utc(theCase.created_at, DBDateFormat);
-  const relativeTimeCutoff = convertDelayStringToMS(config.relative_time_cutoff)!;
-  const useRelativeTime = config.show_relative_times && Date.now() - timestamp.valueOf() < relativeTimeCutoff;
+  const relativeTimeCutoff = convertDelayStringToMS(
+    config.relative_time_cutoff,
+  )!;
+  const useRelativeTime =
+    config.show_relative_times &&
+    Date.now() - timestamp.valueOf() < relativeTimeCutoff;
   const timestampWithTz = requestMemberId
     ? await timeAndDate.inMemberTz(requestMemberId, timestamp)
     : timeAndDate.inGuildTz(timestamp);
@@ -62,7 +104,9 @@ export async function getCaseSummary(
     caseTitle = `\`${caseTitle}\``;
   }
 
-  let caseType = (caseAbbreviations[theCase.type] || String(theCase.type)).toUpperCase();
+  let caseType = (
+    caseAbbreviations[theCase.type] || String(theCase.type)
+  ).toUpperCase();
   caseType = (caseType + "    ").slice(0, 4);
 
   let line = `${icon} **\`${caseType}\`** \`[${prettyTimestamp}]\` ${caseTitle} ${reason}`;
