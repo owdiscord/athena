@@ -1,4 +1,3 @@
-version: '3'
 name: zeppelin-prod
 volumes:
   mysql-data: {}
@@ -38,7 +37,7 @@ services:
       - "443:443"
       - "443:443/udp"
     volumes:
-      - $PWD/docker/caddy/conf:/etc/caddy
+      - $PWD/docker/production/caddy/conf:/etc/caddy
 
   migrate:
     build: 
