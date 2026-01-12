@@ -1,3 +1,20 @@
+appeal.ow2discord.org, appeals.ow2discord.org {
+  redir https://discord.gg/ggaWYVz
+}
+
+ow2discord.org {
+  @appeals {
+    path /appeal*
+    path /appeals*
+  }
+
+  handle @appeals {
+    redir https://discord.gg/ggaWYVz
+  }
+
+  redir https://discord.gg/overwatch
+}
+
 athena.ow2discord.org {
   handle /api* {
     reverse_proxy http://api:3001
@@ -9,4 +26,8 @@ athena.ow2discord.org {
   handle {
     reverse_proxy http://dashboard:3002
   }
+}
+
+modmail.ow2discord.org {
+  reverse_proxy http://modmail:8001
 }
