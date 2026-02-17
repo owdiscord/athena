@@ -60,7 +60,13 @@ export async function getCaseSummary(
 
     reason = reason.replace(/\\`/g, "`");
     reason = closeCodeblocks(reason);
+
+    // Get rid of doubled-up codeblocks
     reason = reason.replace(/``````/g, "```");
+
+    // If we have an uneven number of codeblocks and the block ends with one, kill it
+    if ((reason.match(/```/g) || []).length % 2 !== 0 && reason.endsWith("```"))
+      reason = reason.substring(0, reason.length - 3);
 
     reason += "...";
   }
