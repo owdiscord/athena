@@ -60,17 +60,8 @@ export async function getCaseSummary(
     const reasonChunks = splitMessageIntoChunks(reason, nextWhitespaceIndex);
     reason = reasonChunks[0];
 
-    // Check for unclosed single backticks (inline code) — must run before triple check
-    const singleBacktickCount = (reason.match(/(?<!`)`(?!`)/g) ?? []).length;
-    if (singleBacktickCount % 2 !== 0) {
-      reason += "`";
-    }
-
-    // Check for unclosed triple backtick blocks
-    const tripleBacktickCount = (reason.match(/```/g) ?? []).length;
-    if (tripleBacktickCount % 2 !== 0) {
-      reason += "\n```";
-    }
+    reason = reason.replace(/\\`/g, "`");
+    reason = closeCodeblocks(reason);
 
     reason += "...";
   }
@@ -114,4 +105,20 @@ export async function getCaseSummary(
   }
 
   return line.trim();
+}
+
+function closeCodeblocks(body: string): string {
+  // Check for unclosed single backticks (inline code) — must run before triple check
+  const singleBacktickCount = (body.match(/(?<!`)`(?!`)/g) ?? []).length;
+  if (singleBacktickCount % 2 !== 0) {
+    body += "`";
+  }
+
+  // Check for unclosed triple backtick blocks
+  const tripleBacktickCount = (body.match(/```/g) ?? []).length;
+  if (tripleBacktickCount % 2 !== 0) {
+    body += "\n```";
+  }
+
+  return body;
 }
