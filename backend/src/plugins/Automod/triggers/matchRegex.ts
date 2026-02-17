@@ -72,7 +72,9 @@ export const MatchRegexTrigger = automodTrigger<MatchResultType>()({
           return {
             extra: {
               pattern: regex.source,
-              wordlist: matches.map((s) => s.toString()),
+              wordlist: matches
+                .map((s) => s.toString())
+                .filter((s) => s.length > 1),
               type,
             },
           };
@@ -89,6 +91,6 @@ export const MatchRegexTrigger = automodTrigger<MatchResultType>()({
       matchResult.extra.type,
       contexts[0],
     );
-    return `Matched regex (${matchResult.extra.wordlist.filter((s) => s.length > 1).join(", ")}) in ${partialSummary}`;
+    return `Matched regex (${matchResult.extra.wordlist.join(", ")}) in ${partialSummary}`;
   },
 });
