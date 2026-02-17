@@ -33,8 +33,6 @@ export async function getCaseSummary(
   let reason = firstNote ? firstNote.body : "";
   let leftoverNotes = Math.max(0, theCase.notes.length - 1);
 
-  reason = reason.replace(/``````/g, "`[truncated]`");
-
   for (let i = 1; i < theCase.notes.length; i++) {
     if (
       reason.length >=
@@ -62,6 +60,7 @@ export async function getCaseSummary(
 
     reason = reason.replace(/\\`/g, "`");
     reason = closeCodeblocks(reason);
+    reason = reason.replace(/``````/g, "```");
 
     reason += "...";
   }
