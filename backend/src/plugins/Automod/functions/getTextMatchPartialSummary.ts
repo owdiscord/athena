@@ -11,14 +11,22 @@ export function getTextMatchPartialSummary(
 ) {
   if (type === "message") {
     const message = context.message!;
-    const channel = pluginData.guild.channels.cache.get(message.channel_id as Snowflake);
-    const channelMention = channel ? verboseChannelMention(channel) : `\`#${message.channel_id}\``;
+    const channel = pluginData.guild.channels.cache.get(
+      message.channel_id as Snowflake,
+    );
+    const channelMention = channel
+      ? verboseChannelMention(channel)
+      : `\`#${message.channel_id}\``;
 
-    return `message in ${channelMention}:\n${messageSummary(message)}`;
+    return `message in ${channelMention} https://discord.com/channels/${message.guild_id}/${message.channel_id}/${message.id} :\n${messageSummary(message)}`;
   } else if (type === "embed") {
     const message = context.message!;
-    const channel = pluginData.guild.channels.cache.get(message.channel_id as Snowflake);
-    const channelMention = channel ? verboseChannelMention(channel) : `\`#${message.channel_id}\``;
+    const channel = pluginData.guild.channels.cache.get(
+      message.channel_id as Snowflake,
+    );
+    const channelMention = channel
+      ? verboseChannelMention(channel)
+      : `\`#${message.channel_id}\``;
 
     return `message embed in ${channelMention}:\n${messageSummary(message)}`;
   } else if (type === "username") {
