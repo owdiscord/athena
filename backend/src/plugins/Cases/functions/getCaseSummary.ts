@@ -64,12 +64,17 @@ export async function getCaseSummary(
     // Get rid of doubled-up codeblocks
     reason = reason.replace(/``````/g, "```");
 
-    // If we have an uneven number of codeblocks and the block ends with one, kill it
-    if ((reason.match(/```/g) || []).length % 2 !== 0 && reason.endsWith("```"))
-      reason = reason.substring(0, reason.length - 3);
-
     reason += "...";
   }
+
+  // We can definitely do this even if we aren't truncating, because there are some broken cases.
+  // If we have an uneven number of codeblocks and the block ends with one, kill it
+  if ((reason.match(/```/g) || []).length % 2 !== 0 && reason.endsWith("```"))
+    reason = reason.substring(0, reason.length - 3);
+
+  // Same as above but we're handling singles now
+  if ((reason.match(/`/g) || []).length % 2 !== 0 && reason.endsWith("`"))
+    reason = reason.substring(0, reason.length - 1);
 
   const timestamp = moment.utc(theCase.created_at, DBDateFormat);
   const relativeTimeCutoff = convertDelayStringToMS(
