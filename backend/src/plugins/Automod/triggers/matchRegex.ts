@@ -89,6 +89,6 @@ export const MatchRegexTrigger = automodTrigger<MatchResultType>()({
       matchResult.extra.type,
       contexts[0],
     );
-    return `Matched regex (\`${matchResult.extra.pattern}\`, ${matchResult.extra.wordlist.join(", ")}) in ${partialSummary}`;
+    return `Matched regex (${matchResult.extra.wordlist.filter((s) => s.length > 1).join(", ")}) in ${partialSummary}`;
   },
 });
