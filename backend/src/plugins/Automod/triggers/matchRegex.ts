@@ -5,12 +5,16 @@ import { mergeRegexes } from "../../../utils/mergeRegexes.js";
 import { normalizeText } from "../../../utils/normalizeText.js";
 import { stripMarkdown } from "../../../utils/stripMarkdown.js";
 import { getTextMatchPartialSummary } from "../functions/getTextMatchPartialSummary.js";
-import { MatchableTextType, matchMultipleTextTypesOnMessage } from "../functions/matchMultipleTextTypesOnMessage.js";
+import {
+  MatchableTextType,
+  matchMultipleTextTypesOnMessage,
+} from "../functions/matchMultipleTextTypesOnMessage.js";
 import { automodTrigger } from "../helpers.js";
 
 interface MatchResultType {
   pattern: string;
   type: MatchableTextType;
+  wordlist: string[];
 }
 
 const configSchema = z.strictObject({
@@ -46,7 +50,11 @@ export const MatchRegexTrigger = automodTrigger<MatchResultType>()({
     }
     const regexes = regexCache.get(trigger)!;
 
-    for await (let [type, str] of matchMultipleTextTypesOnMessage(pluginData, trigger, context.message)) {
+    for await (let [type, str] of matchMultipleTextTypesOnMessage(
+      pluginData,
+      trigger,
+      context.message,
+    )) {
       if (trigger.strip_markdown) {
         str = stripMarkdown(str);
       }
@@ -56,11 +64,15 @@ export const MatchRegexTrigger = automodTrigger<MatchResultType>()({
       }
 
       for (const regex of regexes) {
-        const matches = await pluginData.state.regexRunner.exec(regex, str).catch(allowTimeout);
+        const matches = await pluginData.state.regexRunner
+          .exec(regex, str)
+          .catch(allowTimeout);
+
         if (matches?.length) {
           return {
             extra: {
               pattern: regex.source,
+              wordlist: matches.map((s) => s.toString()),
               type,
             },
           };
@@ -72,7 +84,11 @@ export const MatchRegexTrigger = automodTrigger<MatchResultType>()({
   },
 
   renderMatchInformation({ pluginData, contexts, matchResult }) {
-    const partialSummary = getTextMatchPartialSummary(pluginData, matchResult.extra.type, contexts[0]);
-    return `Matched regex in ${partialSummary}`;
+    const partialSummary = getTextMatchPartialSummary(
+      pluginData,
+      matchResult.extra.type,
+      contexts[0],
+    );
+    return `Matched regex (\`${matchResult.extra.pattern}\`, ${matchResult.extra.wordlist.join(", ")}) in ${partialSummary}`;
   },
 });
