@@ -9,7 +9,11 @@ import { GuildPluginData } from "vety";
 import moment from "moment-timezone";
 import { CaseTypes } from "../../../data/CaseTypes.js";
 import { Case } from "../../../data/entities/Case.js";
-import { chunkMessageLines, emptyEmbedValue, messageLink } from "../../../utils.js";
+import {
+  chunkMessageLines,
+  emptyEmbedValue,
+  messageLink,
+} from "../../../utils.js";
 import { TimeAndDatePlugin } from "../../TimeAndDate/TimeAndDatePlugin.js";
 import { CasesPluginType } from "../types.js";
 import { getCaseColor } from "./getCaseColor.js";
@@ -20,8 +24,15 @@ export async function getCaseEmbed(
   caseOrCaseId: Case | number,
   requestMemberId?: string,
   noOriginalCaseLink?: boolean,
-): Promise<MessageCreateOptions & MessageEditOptions & InteractionReplyOptions & InteractionEditReplyOptions> {
-  const theCase = await pluginData.state.cases.with("notes").find(resolveCaseId(caseOrCaseId));
+): Promise<
+  MessageCreateOptions &
+    MessageEditOptions &
+    InteractionReplyOptions &
+    InteractionEditReplyOptions
+> {
+  const theCase = await pluginData.state.cases
+    .with("notes")
+    .find(resolveCaseId(caseOrCaseId));
   if (!theCase) {
     throw new Error("Unknown case");
   }
@@ -32,7 +43,8 @@ export async function getCaseEmbed(
   const actionTypeStr = CaseTypes[theCase.type].toUpperCase();
 
   let userName = theCase.user_name;
-  if (theCase.user_id && theCase.user_id !== "0") userName += `\n<@!${theCase.user_id}>`;
+  if (theCase.user_id && theCase.user_id !== "0")
+    userName += `\n<@!${theCase.user_id}>`;
 
   let modName = theCase.mod_name;
   if (theCase.mod_id) modName += `\n<@!${theCase.mod_id}>`;
@@ -73,7 +85,8 @@ export async function getCaseEmbed(
   if (theCase.notes.length) {
     for (const note of theCase.notes) {
       const noteDate = moment.utc(note.created_at);
-      let noteBody = escapeCodeBlock(note.body.trim());
+      // let noteBody = escapeCodeBlock(note.body.trim());
+      let noteBody = note.body.trim();
       if (noteBody === "") {
         noteBody = emptyEmbedValue;
       }
@@ -85,7 +98,9 @@ export async function getCaseEmbed(
           const noteDateWithTz = requestMemberId
             ? await timeAndDate.inMemberTz(requestMemberId, noteDate)
             : timeAndDate.inGuildTz(noteDate);
-          const prettyNoteDate = noteDateWithTz.format(timeAndDate.getDateFormat("pretty_datetime"));
+          const prettyNoteDate = noteDateWithTz.format(
+            timeAndDate.getDateFormat("pretty_datetime"),
+          );
           embed.fields.push({
             name: `${note.mod_name} at ${prettyNoteDate}:`,
             value: chunks[i],
