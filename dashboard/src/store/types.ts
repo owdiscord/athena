@@ -1,4 +1,4 @@
-import { ApiPermissions } from "@zeppelinbot/shared/apiPermissions.js";
+import { ApiPermissions } from "@athena/shared/apiPermissions";
 
 export enum LoadStatus {
   None = 1,

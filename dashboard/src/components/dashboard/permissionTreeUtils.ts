@@ -1,11 +1,19 @@
-import { ApiPermissions, hasPermission, TPermissionHierarchy } from "@zeppelinbot/shared/apiPermissions.js";
+import {
+  ApiPermissions,
+  hasPermission,
+  TPermissionHierarchy,
+} from "@athena/shared/apiPermissions";
 
 export type TPermissionHierarchyState = {
   locked: boolean;
   redundant: boolean;
 };
 
-export type TApiPermissionWithState = [ApiPermissions, TPermissionHierarchyState, TPermissionHierarchyWithState?];
+export type TApiPermissionWithState = [
+  ApiPermissions,
+  TPermissionHierarchyState,
+  TPermissionHierarchyWithState?,
+];
 export type TPermissionHierarchyWithState = TApiPermissionWithState[];
 
 /**
@@ -27,12 +35,21 @@ export function applyStateToPermissionHierarchy(
 
     // Can't edit permissions you don't have yourself
     const locked = !hasPermission(managerPermissions, perm);
-    const permissionWithState: TApiPermissionWithState = [perm, { locked, redundant: entireTreeIsGranted }];
+    const permissionWithState: TApiPermissionWithState = [
+      perm,
+      { locked, redundant: entireTreeIsGranted },
+    ];
 
     if (nested) {
-      const subTreeGranted = entireTreeIsGranted || grantedPermissions.has(perm);
+      const subTreeGranted =
+        entireTreeIsGranted || grantedPermissions.has(perm);
       permissionWithState.push(
-        applyStateToPermissionHierarchy(nested, grantedPermissions, managerPermissions, subTreeGranted),
+        applyStateToPermissionHierarchy(
+          nested,
+          grantedPermissions,
+          managerPermissions,
+          subTreeGranted,
+        ),
       );
     }
 

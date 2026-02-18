@@ -1,4 +1,4 @@
-import { ApiPermissions, hasPermission, permissionArrToSet } from "@zeppelinbot/shared/apiPermissions.js";
+import { ApiPermissions, hasPermission, permissionArrToSet } from "@athena/shared/apiPermissions.js";
 import { Request, Response } from "express";
 import { ApiPermissionAssignments } from "../data/ApiPermissionAssignments.js";
 import { isStaff } from "../staff.js";
