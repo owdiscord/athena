@@ -3,7 +3,10 @@ import { z } from "zod";
 import { normalizeText } from "../../../utils/normalizeText.js";
 import { stripMarkdown } from "../../../utils/stripMarkdown.js";
 import { getTextMatchPartialSummary } from "../functions/getTextMatchPartialSummary.js";
-import { MatchableTextType, matchMultipleTextTypesOnMessage } from "../functions/matchMultipleTextTypesOnMessage.js";
+import {
+  MatchableTextType,
+  matchMultipleTextTypesOnMessage,
+} from "../functions/matchMultipleTextTypesOnMessage.js";
 import { automodTrigger } from "../helpers.js";
 import { escapeInlineCode } from "discord.js";
 
@@ -38,36 +41,51 @@ export const MatchWordsTrigger = automodTrigger<MatchResultType>()({
     }
 
     if (!regexCache.has(trigger)) {
-      const looseMatchingThreshold = Math.min(Math.max(trigger.loose_matching_threshold, 1), 64);
+      const looseMatchingThreshold = Math.min(
+        Math.max(trigger.loose_matching_threshold, 1),
+        64,
+      );
 
       const patterns = trigger.words.map((word) => {
         let pattern;
 
         if (trigger.loose_matching) {
-          pattern = [...word].map((c) => escapeStringRegexp(c)).join(`[\\s\\-_.,!?]{0,${looseMatchingThreshold}}`);
+          pattern = [...word]
+            .map((c) => escapeStringRegexp(c))
+            .join(`[\\s\\-_.,!?]{0,${looseMatchingThreshold}}`);
         } else {
           pattern = escapeStringRegexp(word);
         }
 
+        const wordBoundary = "(?<![\\p{L}\\p{N}_])";
+        const wordBoundaryEnd = "(?![\\p{L}\\p{N}_])";
+
         if (trigger.only_full_words) {
           if (trigger.loose_matching) {
-            pattern = `\\b(?:${pattern})\\b`;
+            pattern = `${wordBoundary}(?:${pattern})${wordBoundaryEnd}`;
           } else {
-            pattern = `\\b${pattern}\\b`;
+            pattern = `${wordBoundary}${pattern}${wordBoundaryEnd}`;
           }
         }
 
         return pattern;
       });
 
-      const mergedRegex = new RegExp(patterns.map((p) => `(${p})`).join("|"), trigger.case_sensitive ? "" : "i");
+      const mergedRegex = new RegExp(
+        patterns.map((p) => `(${p})`).join("|"),
+        trigger.case_sensitive ? "" : "i",
+      );
 
       regexCache.set(trigger, [mergedRegex]);
     }
 
     const regexes = regexCache.get(trigger)!;
 
-    for await (let [type, str] of matchMultipleTextTypesOnMessage(pluginData, trigger, context.message)) {
+    for await (let [type, str] of matchMultipleTextTypesOnMessage(
+      pluginData,
+      trigger,
+      context.message,
+    )) {
       if (trigger.strip_markdown) {
         str = stripMarkdown(str);
       }
@@ -79,7 +97,9 @@ export const MatchWordsTrigger = automodTrigger<MatchResultType>()({
       for (const regex of regexes) {
         const match = regex.exec(str);
         if (match) {
-          const matchedWordIndex = match.slice(1).findIndex((group) => group !== undefined);
+          const matchedWordIndex = match
+            .slice(1)
+            .findIndex((group) => group !== undefined);
           const matchedWord = trigger.words[matchedWordIndex];
 
           return {
@@ -96,8 +116,14 @@ export const MatchWordsTrigger = automodTrigger<MatchResultType>()({
   },
 
   renderMatchInformation({ pluginData, contexts, matchResult }) {
-    const partialSummary = getTextMatchPartialSummary(pluginData, matchResult.extra.type, contexts[0]);
-    const wordInfo = matchResult.extra.word ? ` (\`${escapeInlineCode(matchResult.extra.word)}\`)` : "";
+    const partialSummary = getTextMatchPartialSummary(
+      pluginData,
+      matchResult.extra.type,
+      contexts[0],
+    );
+    const wordInfo = matchResult.extra.word
+      ? ` (\`${escapeInlineCode(matchResult.extra.word)}\`)`
+      : "";
     return `Matched word${wordInfo} in ${partialSummary}`;
   },
 });
