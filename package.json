@@ -28,5 +28,15 @@
   },
   "engines": {
     "node": ">=24"
+  },
+  "workspaces": [
+    "backend",
+    "shared",
+    "api",
+    "dashboard"
+  ],
+  "overrides": {
+    "discord.js": "14.23.2",
+    "discord-api-types": "0.38.30"
   }
 }
