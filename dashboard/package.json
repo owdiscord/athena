@@ -32,9 +32,7 @@
     "vuex": "^4.1.0"
   },
   "dependencies": {
-    "@fastify/static": "^7.0.1",
     "ace-builds": "1.43.4",
-    "fastify": "^4.26.2"
   },
   "browserslist": [
     "last 2 Chrome versions"
