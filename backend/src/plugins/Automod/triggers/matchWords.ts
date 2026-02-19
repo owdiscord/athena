@@ -73,7 +73,7 @@ export const MatchWordsTrigger = automodTrigger<MatchResultType>()({
 
       const mergedRegex = new RegExp(
         patterns.map((p) => `(${p})`).join("|"),
-        trigger.case_sensitive ? "" : "i",
+        trigger.case_sensitive ? "u" : "iu",
       );
 
       regexCache.set(trigger, [mergedRegex]);
