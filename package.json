@@ -32,7 +32,6 @@
   "workspaces": [
     "backend",
     "shared",
-    "api",
     "dashboard"
   ],
   "overrides": {
