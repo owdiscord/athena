@@ -112,7 +112,7 @@ jobs:
       - name: Build and push dashboard
         uses: docker/build-push-action@v5
         with:
-          context: dashboard/
+          context: .
           file: dashboard/Dockerfile
           push: true
           tags: |
