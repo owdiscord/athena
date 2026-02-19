@@ -1,4 +1,4 @@
-import { ApiPermissions } from "@zeppelinbot/shared/apiPermissions.js";
+import { ApiPermissions } from "@athena/shared/apiPermissions.js";
 import moment from "moment-timezone";
 import { commandTypeHelpers as ct } from "../../../commandTypes.js";
 import { DBDateFormat, isGuildInvite, resolveInvite } from "../../../utils.js";

@@ -1,4 +1,4 @@
-import { ApiPermissions } from "@zeppelinbot/shared/apiPermissions.js";
+import { ApiPermissions } from "@athena/shared/apiPermissions.js";
 import { Repository } from "typeorm";
 import { ApiAuditLog } from "./ApiAuditLog.js";
 import { BaseRepository } from "./BaseRepository.js";

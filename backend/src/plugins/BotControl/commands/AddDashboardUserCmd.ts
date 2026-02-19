@@ -1,4 +1,4 @@
-import { ApiPermissions } from "@zeppelinbot/shared/apiPermissions.js";
+import { ApiPermissions } from "@athena/shared/apiPermissions.js";
 import { commandTypeHelpers as ct } from "../../../commandTypes.js";
 import { isStaffPreFilter } from "../../../pluginUtils.js";
 import { renderUsername } from "../../../utils.js";

@@ -1,5 +1,5 @@
 {
-  "name": "@zeppelinbot/backend",
+  "name": "@athena/backend",
   "version": "0.0.1",
   "description": "",
   "private": true,
@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@silvia-odwyer/photon-node": "^0.3.1",
-    "@zeppelinbot/shared": "workspace:*",
+    "@athena/shared": "workspace:*",
     "bufferutil": "^4.0.3",
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",
