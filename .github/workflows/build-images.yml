@@ -6,28 +6,37 @@ on:
       - main
 
 jobs:
+  # Silly, but I need to do this to test the first builds, lol
   changes:
     runs-on: ubuntu-latest
     outputs:
-      backend: ${{ steps.filter.outputs.backend }}
-      api: ${{ steps.filter.outputs.api }}
-      dashboard: ${{ steps.filter.outputs.dashboard }}
+      backend: 'true'
+      api: 'true'
+      dashboard: 'true'
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            backend:
-              - 'backend/**'
-              - 'shared/**'
-            api:
-              - 'backend/**'
-              - 'shared/**'
-            dashboard:
-              - 'dashboard/**'
-              - 'shared/**'
+      - run: echo "Skipping path filters, building all"
+  # changes:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     backend: ${{ steps.filter.outputs.backend }}
+  #     api: ${{ steps.filter.outputs.api }}
+  #     dashboard: ${{ steps.filter.outputs.dashboard }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #
+  #     - uses: dorny/paths-filter@v3
+  #       id: filter
+  #       with:
+  #         filters: |
+  #           backend:
+  #             - 'backend/**'
+  #             - 'shared/**'
+  #           api:
+  #             - 'backend/**'
+  #             - 'shared/**'
+  #           dashboard:
+  #             - 'dashboard/**'
+  #             - 'shared/**'
 
   build-backend:
     needs: changes
