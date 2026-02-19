@@ -3,11 +3,13 @@
     <h1>Import / Export</h1>
     <p>
       <strong>Note!</strong>
-      This feature is currently experimental. Make sure to always export a backup before importing server data. If you encounter any issues, please report them on the <a href="https://discord.gg/zeppelin">Zeppelin Discord Server</a>.
+      This feature is currently experimental. Make sure to always export a backup before importing server data. If you
+      encounter any issues, please report them on the <a href="https://discord.gg/zeppelin">Zeppelin Discord Server</a>.
     </p>
 
     <h2>Export server data</h2>
-    <button class="inline-block bg-gray-700 rounded px-1 hover:bg-gray-800 hover:bg-gray-800" @click="runExport()" :disabled="exporting">Export data</button>
+    <button class="inline-block bg-gray-700 rounded px-1 hover:bg-gray-800 hover:bg-gray-800" @click="runExport()"
+      :disabled="exporting">Export data</button>
 
     <p v-if="exporting">Opened data export in new window!</p>
     <p v-else>&nbsp;</p>
@@ -19,15 +21,20 @@
     </p>
     <div class="mb-4">
       <h3>Import file</h3>
-      <input type="file" @change="selectImportFile($event.target.files[0])">
+      <input type="file" @change="selectImportFile(($event.target as HTMLInputElement).files[0])">
     </div>
     <div class="mb-4">
       <h3>Case options</h3>
-      <label><input type="radio" v-model="importCaseMode" value="bumpImportedCases"> Leave existing case numbers, start imported cases from the end</label><br>
-      <label><input type="radio" v-model="importCaseMode" value="bumpExistingCases"> Leave imported case numbers, re-number existing cases to start after imported cases</label><br>
-      <label><input type="radio" v-model="importCaseMode" value="replace"> Replace existing cases (!! THIS WILL DELETE ALL EXISTING CASES !!)</label>
+      <label><input type="radio" v-model="importCaseMode" value="bumpImportedCases"> Leave existing case numbers, start
+        imported cases from the end</label><br>
+      <label><input type="radio" v-model="importCaseMode" value="bumpExistingCases"> Leave imported case numbers,
+        re-number existing cases to start after imported cases</label><br>
+      <label><input type="radio" v-model="importCaseMode" value="replace"> Replace existing cases (!! THIS WILL DELETE
+        ALL EXISTING CASES !!)</label>
     </div>
-    <button class="inline-block bg-gray-700 rounded px-1 hover:bg-gray-800" :class="{ 'bg-gray-800': importFile == null, 'hover:bg-gray-800': importFile != null }" @click="runImport()" :disabled="importFile == null">Import selected file</button>
+    <button class="inline-block bg-gray-700 rounded px-1 hover:bg-gray-800"
+      :class="{ 'bg-gray-800': importFile == null, 'hover:bg-gray-800': importFile != null }" @click="runImport()"
+      :disabled="importFile == null">Import selected file</button>
 
     <p v-if="importError">Error: {{ importError }}</p>
     <p v-else-if="importing">Importing...</p>
@@ -37,10 +44,10 @@
 
 <script lang="ts">
 import { mapState } from "vuex";
-import { ApiPermissions, hasPermission } from "@athena/shared/apiPermissions.js";
-import { AuthState, GuildState } from "../../store/types";
+// import { ApiPermissions, hasPermission } from "@athena/shared/apiPermissions";
+import type { GuildState } from "../../store/types";
 import { ApiError, formPost } from "../../api";
-import moment from "moment";
+// import moment from "moment";
 
 export default {
   async mounted() {
@@ -90,7 +97,7 @@ export default {
         return;
       }
 
-      if (! this.importFile) {
+      if (!this.importFile) {
         return;
       }
 
