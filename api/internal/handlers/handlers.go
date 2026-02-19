@@ -1,18 +1,25 @@
+// Package handlers contains our HTTP endpoints, split up by their
+// generalised purpose. All handlers are functions on the Handler struct
+// which gives us easy-access to dependencies.
 package handlers
 
 import (
-	"github.com/jmoiron/sqlx"
+	"sync"
+
+	"github.com/owdiscord/athena/api/internal/db"
 	"github.com/owdiscord/athena/api/internal/services/discord"
 )
 
 type Handler struct {
 	discord *discord.Config
-	db      *sqlx.DB
+	db      *db.DB
+	mu      sync.Mutex
 }
 
-func New(discord *discord.Config, db *sqlx.DB) Handler {
+func New(discord *discord.Config, db *db.DB) Handler {
 	return Handler{
 		discord,
 		db,
+		sync.Mutex{},
 	}
 }

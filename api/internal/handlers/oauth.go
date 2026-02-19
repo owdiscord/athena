@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v5"
@@ -15,24 +14,51 @@ func (h *Handler) OAuthLogin(c *echo.Context) error {
 func (h *Handler) OAuthCallback(c *echo.Context) error {
 	code := c.QueryParam("code")
 	if code == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "no code provided",
-		})
+		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess"))
 	}
 
 	resp, err := h.discord.Exchange(code)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess"))
 	}
 
 	user, err := discord.GetUser(resp.AccessToken)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess"))
 	}
 
-	return c.String(200, fmt.Sprintf("%+v", user))
+	// Check the user has access to at least one guild
+	perms, err := h.db.GetPermissionsByUserID(c.Request().Context(), user.ID)
+	if err != nil || len(perms) == 0 {
+		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess"))
+	}
+
+	apiKey, err := h.db.CreateAPIKey(c.Request().Context(), user.ID)
+	if err != nil {
+		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess"))
+	}
+
+	if err := h.db.UpsertUser(c.Request().Context(), user); err != nil {
+		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess"))
+	}
+
+	return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?apiKey="+apiKey))
+}
+
+func (h *Handler) Logout(c *echo.Context) error {
+	apiKey := c.Request().Header.Get("X-Api-Key")
+	if err := h.db.ExpireAPIKey(c.Request().Context(), apiKey); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to logout")
+	}
+	return c.NoContent(http.StatusOK)
+}
+
+func (h *Handler) Refresh(c *echo.Context) error {
+	// The APIKeyAuth middleware already refreshes the expiry on every request,
+	// so there's nothing to do here but return 200
+	return c.NoContent(http.StatusOK)
+}
+
+func dashboardURL(to string) string {
+	return to
 }

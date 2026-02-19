@@ -10,18 +10,11 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
+	"github.com/owdiscord/athena/api/internal/models"
+	"github.com/owdiscord/athena/api/internal/services/discord"
 )
 
-type APILogin struct {
-	ID         string
-	Token      string
-	UserID     string
-	LoggedInAt string
-	ExpiresAt  string
-}
-
-func CreateAPIKey(db *sqlx.DB, ctx context.Context, userID string) (string, error) {
+func (db *DB) CreateAPIKey(ctx context.Context, userID string) (string, error) {
 	// Generate unique loginID (UUIDv7)
 	loginUUID, err := uuid.NewV7()
 	if err != nil {
@@ -42,7 +35,7 @@ func CreateAPIKey(db *sqlx.DB, ctx context.Context, userID string) (string, erro
 	hash.Write([]byte(loginID + token))
 	hashedToken := hex.EncodeToString(hash.Sum(nil))
 
-	_, err = db.ExecContext(ctx,
+	_, err = db.conn.ExecContext(ctx,
 		"INSERT INTO api_logins (id, token, user_id, logged_in_at, expires_at) VALUES (?, ?, ?, now(), DATE_ADD(now(), INTERVAL 24 HOUR))",
 		loginID, hashedToken, userID,
 	)
@@ -53,14 +46,14 @@ func CreateAPIKey(db *sqlx.DB, ctx context.Context, userID string) (string, erro
 	return loginID + "." + token, nil
 }
 
-func GetUserIDByAPIKey(db sqlx.DB, ctx context.Context, apiKey string) (string, error) {
+func (db *DB) GetUserIDByAPIKey(ctx context.Context, apiKey string) (string, error) {
 	loginID, token, err := extractToken(apiKey)
 	if err != nil {
 		return "", err
 	}
-	var login APILogin
+	var login models.APILogin
 
-	if err := db.GetContext(ctx, &login, "SELECT * FROM api_logins WHERE id = ? AND expires_at > now() LIMIT 1", loginID); err != nil {
+	if err := db.conn.GetContext(ctx, &login, "SELECT * FROM api_logins WHERE id = ? AND expires_at > now() LIMIT 1", loginID); err != nil {
 		return "", err
 	}
 
@@ -75,23 +68,34 @@ func GetUserIDByAPIKey(db sqlx.DB, ctx context.Context, apiKey string) (string, 
 	return login.UserID, nil
 }
 
-func ExpireAPIKey(db *sqlx.DB, ctx context.Context, apiKey string) error {
+func (db *DB) ExpireAPIKey(ctx context.Context, apiKey string) error {
 	loginID, _, err := extractToken(apiKey)
 	if err != nil {
 		return err
 	}
 
-	_, err = db.ExecContext(ctx, "UPDATE api_logins SET expires_at = now() WHERE id = ?", loginID)
+	_, err = db.conn.ExecContext(ctx, "UPDATE api_logins SET expires_at = now() WHERE id = ?", loginID)
 	return err
 }
 
-func RefreshAPIKeyExpiry(db *sqlx.DB, ctx context.Context, apiKey string) error {
+func (db *DB) RefreshAPIKeyExpiry(ctx context.Context, apiKey string) error {
 	loginID, _, err := extractToken(apiKey)
 	if err != nil {
 		return err
 	}
 
-	_, err = db.ExecContext(ctx, "UPDATE api_logins SET expires_at = DATE_ADD(now(), INTERVAL 24 HOUR) WHERE id = ?", loginID)
+	_, err = db.conn.ExecContext(ctx, "UPDATE api_logins SET expires_at = DATE_ADD(now(), INTERVAL 24 HOUR) WHERE id = ?", loginID)
+	return err
+}
+
+func (db *DB) UpsertUser(ctx context.Context, user *discord.User) error {
+	_, err := db.conn.ExecContext(ctx, `
+		INSERT INTO api_user_info (id, username, discriminator, avatar)
+		VALUES (?, ?, '0000', ?)
+		ON DUPLICATE KEY UPDATE
+			username = VALUES(username),
+			avatar = VALUES(avatar)
+	`, user.ID, user.Username, user.Avatar)
 	return err
 }
 
@@ -103,6 +107,3 @@ func extractToken(input string) (string, string, error) {
 
 	return split[0], split[1], nil
 }
-
-// func UserHasGuildAccess(db *sqlx.DB, ctx context.Context, userID string) (bool, error)
-// func UpsertUser(db *sqlx.DB, ctx context.Context, user *discord.User) error
