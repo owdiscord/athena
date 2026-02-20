@@ -61,7 +61,7 @@ func main() {
 	g.GET("/guilds/:guildId/permissions", handlers.GetPermissions)
 	g.POST("/guilds/:guildId/set-target-permissions", handlers.SetTargetPermissions)
 
-	if err := app.Start(":8080"); err != nil {
+	if err := app.Start("0.0.0.0:8080"); err != nil {
 		app.Logger.Error("Failed to start server", "error", err)
 	}
 }
