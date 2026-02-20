@@ -22,7 +22,7 @@ func main() {
 	// Used in development, literally do not care if it hasn't been instantiated.
 	godotenv.Load("../.env", ".env")
 
-	if os.Getenv("DATABASE_URL") == "" || os.Getenv("DISCORD_CLIENT_ID") == "" || os.Getenv("DISCORD_CLIENT_SECRET") == "" || os.Getenv("DISCORD_REDIRECT_URI") == "" {
+	if os.Getenv("DATABASE_URL") == "" || os.Getenv("DISCORD_CLIENT_ID") == "" || os.Getenv("DISCORD_CLIENT_SECRET") == "" || os.Getenv("DISCORD_REDIRECT_URI") == "" || os.Getenv("KEY") == "" {
 		log.Fatal("environment variables are not set. can't start")
 	}
 
@@ -38,7 +38,7 @@ func main() {
 		Scopes:       []string{"identify"},
 	}
 
-	handlers := handlers.New(discord, db)
+	handlers := handlers.New(os.Getenv("KEY"), discord, db)
 
 	app := echo.New()
 	app.Use(echomiddleware.RequestLoggerWithConfig(echomiddleware.RequestLoggerConfig{

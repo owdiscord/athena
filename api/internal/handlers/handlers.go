@@ -11,13 +11,15 @@ import (
 )
 
 type Handler struct {
+	key     string
 	discord *discord.Config
 	db      *db.DB
 	mu      sync.Mutex
 }
 
-func New(discord *discord.Config, db *db.DB) Handler {
+func New(key string, discord *discord.Config, db *db.DB) Handler {
 	return Handler{
+		key,
 		discord,
 		db,
 		sync.Mutex{},
