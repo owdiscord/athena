@@ -23,9 +23,9 @@
               <router-link v-if="canManageAccess(guild.id)"
                 class="inline-block bg-gray-700 rounded px-1 hover:bg-gray-800"
                 :to="'/dashboard/guilds/' + guild.id + '/access'">Access</router-link>
-              <router-link v-if="canManageAccess(guild.id)"
-                class="inline-block bg-gray-700 rounded px-1 hover:bg-gray-800"
-                :to="'/dashboard/guilds/' + guild.id + '/import-export'">Import/export</router-link>
+              <!-- <router-link v-if="canManageAccess(guild.id)" -->
+              <!--   class="inline-block bg-gray-700 rounded px-1 hover:bg-gray-800" -->
+              <!--   :to="'/dashboard/guilds/' + guild.id + '/import-export'">Import/export</router-link> -->
             </div>
           </div>
         </div>

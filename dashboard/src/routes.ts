@@ -80,16 +80,17 @@ export const router = createRouter({
         },
         {
           path: "guilds/:guildId/config",
-          component: () => import("./components/dashboard/GuildConfigEditor.vue"),
+          component: () =>
+            import("./components/dashboard/GuildConfigEditor.vue"),
         },
         {
           path: "guilds/:guildId/access",
           component: () => import("./components/dashboard/GuildAccess.vue"),
         },
-        {
-          path: "guilds/:guildId/import-export",
-          component: () => import("./components/dashboard/GuildImportExport.vue"),
-        },
+        // {
+        //   path: "guilds/:guildId/import-export",
+        //   component: () => import("./components/dashboard/GuildImportExport.vue"),
+        // },
       ],
     },
   ],
