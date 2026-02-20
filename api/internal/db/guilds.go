@@ -101,10 +101,11 @@ func (db *DB) GetPermissionsByGuildAndUserID(ctx context.Context, guildID, userI
 		return nil, err
 	}
 
-	var perms []permissions.APIPermission
-	if err := json.Unmarshal([]byte(row.Permissions), &perms); err != nil {
+	perms, err := parsePermissions(row.Permissions)
+	if err != nil {
 		return nil, err
 	}
+
 	return &models.PermissionAssignment{
 		GuildID:     row.GuildID,
 		Type:        row.Type,
@@ -196,10 +197,11 @@ func scanPermissions(rows []struct {
 }) ([]models.PermissionAssignment, error) {
 	result := make([]models.PermissionAssignment, 0, len(rows))
 	for _, row := range rows {
-		var perms []permissions.APIPermission
-		if err := json.Unmarshal([]byte(row.Permissions), &perms); err != nil {
+		perms, err := parsePermissions(row.Permissions)
+		if err != nil {
 			return nil, err
 		}
+
 		result = append(result, models.PermissionAssignment{
 			GuildID:     row.GuildID,
 			Type:        row.Type,
@@ -209,4 +211,14 @@ func scanPermissions(rows []struct {
 		})
 	}
 	return result, nil
+}
+
+func parsePermissions(raw string) ([]permissions.APIPermission, error) {
+	// Try JSON array first
+	var perms []permissions.APIPermission
+	if err := json.Unmarshal([]byte(raw), &perms); err == nil {
+		return perms, nil
+	}
+	// Fall back to plain string
+	return []permissions.APIPermission{permissions.APIPermission(raw)}, nil
 }
