@@ -7,8 +7,11 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v5"
+	echomiddleware "github.com/labstack/echo/v5/middleware"
+
 	"github.com/owdiscord/athena/api/internal/db"
 	"github.com/owdiscord/athena/api/internal/handlers"
+
 	"github.com/owdiscord/athena/api/internal/middleware"
 	"github.com/owdiscord/athena/api/internal/services/discord"
 )
@@ -36,7 +39,11 @@ func main() {
 	handlers := handlers.New(discord, db)
 
 	app := echo.New()
-	app.GET("/", func(c *echo.Context) error {
+	app.Use(echomiddleware.RequestLoggerWithConfig(echomiddleware.RequestLoggerConfig{
+		LogStatus: true,
+		LogURI:    true,
+	}))
+	app.GET("/api", func(c *echo.Context) error {
 		return c.JSON(200, map[string]string{"status": "cookies", "with": "milk"})
 	})
 	app.GET("/api/auth/login", handlers.OAuthLogin)

@@ -16,6 +16,7 @@ func (h *Handler) Available(c *echo.Context) error {
 
 	guilds, err := h.db.GetGuildsForUser(c.Request().Context(), userID)
 	if err != nil {
+		c.Logger().Error("couldn't retrieve guilds for user", "sql_error", err.Error(), "userID", userID)
 		return echo.NewHTTPError(http.StatusInternalServerError, "server error")
 	}
 
@@ -27,6 +28,7 @@ func (h *Handler) MyPermissions(c *echo.Context) error {
 
 	perms, err := h.db.GetPermissionsByUserID(c.Request().Context(), userID)
 	if err != nil {
+		c.Logger().Error("couldn't retrieve permissions for user", "sql_error", err.Error(), "userID", userID)
 		return echo.NewHTTPError(http.StatusInternalServerError, "server error")
 	}
 
@@ -43,6 +45,7 @@ func (h *Handler) GetGuild(c *echo.Context) error {
 
 	guild, err := h.db.GetGuild(c.Request().Context(), guildID)
 	if err != nil {
+		c.Logger().Error("couldn't retrieve guild", "sql_error", err.Error(), "guildID", guildID, "userID", userID)
 		return echo.NewHTTPError(http.StatusInternalServerError, "server error")
 	}
 
@@ -57,6 +60,7 @@ func (h *Handler) CheckPermission(c *echo.Context) error {
 		Permission permissions.APIPermission `json:"permission"`
 	}
 	if err := c.Bind(&body); err != nil {
+		c.Logger().Error("couldn't retrieve guild", "binding_error", err.Error(), "guildID", guildID, "userID", userID)
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid body")
 	}
 
@@ -74,6 +78,7 @@ func (h *Handler) GetConfig(c *echo.Context) error {
 
 	config, err := h.db.GetActiveConfig(c.Request().Context(), "guild-"+guildID)
 	if err != nil {
+		c.Logger().Error("couldn't retrieve guild", "sql_error", err.Error(), "guildID", guildID, "userID", userID)
 		return echo.NewHTTPError(http.StatusInternalServerError, "server error")
 	}
 
@@ -97,6 +102,7 @@ func (h *Handler) SaveConfig(c *echo.Context) error {
 		Config *string `json:"config"`
 	}
 	if err := c.Bind(&body); err != nil || body.Config == nil {
+		c.Logger().Error("couldn't retrieve guild", "binding_error", err.Error(), "guildID", guildID, "userID", userID)
 		return echo.NewHTTPError(http.StatusBadRequest, "no config supplied")
 	}
 
@@ -112,6 +118,7 @@ func (h *Handler) SaveConfig(c *echo.Context) error {
 	}
 
 	if err := h.db.SaveConfigRevision(c.Request().Context(), "guild-"+guildID, config, userID); err != nil {
+		c.Logger().Error("couldn't retrieve guild", "sql_error", err.Error(), "guildID", guildID, "userID", userID)
 		return echo.NewHTTPError(http.StatusInternalServerError, "server error")
 	}
 
@@ -128,6 +135,7 @@ func (h *Handler) GetPermissions(c *echo.Context) error {
 
 	perms, err := h.db.GetPermissionsByGuildID(c.Request().Context(), guildID)
 	if err != nil {
+		c.Logger().Error("couldn't retrieve guild", "sql_error", err.Error(), "guildID", guildID, "userID", userID)
 		return echo.NewHTTPError(http.StatusInternalServerError, "server error")
 	}
 

@@ -11,7 +11,8 @@ import (
 func (h *Handler) GetArchive(c *echo.Context) error {
 	archive, err := h.db.GetArchive(c.Request().Context(), c.Param("id"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "server error")
+		c.Logger().Error("couldn't retrieve archive", "sql_error", err.Error())
+		return echo.NewHTTPError(http.StatusInternalServerError, "could not get archive: server error")
 	}
 	if archive == nil {
 		return echo.NewHTTPError(http.StatusNotFound, "not found")
