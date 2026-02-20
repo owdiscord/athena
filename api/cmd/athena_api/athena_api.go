@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 
@@ -40,8 +42,24 @@ func main() {
 
 	app := echo.New()
 	app.Use(echomiddleware.RequestLoggerWithConfig(echomiddleware.RequestLoggerConfig{
-		LogStatus: true,
-		LogURI:    true,
+		LogStatus:   true,
+		LogURI:      true,
+		HandleError: true, // forwards error to the global error handler, so it can decide appropriate status code
+		LogValuesFunc: func(c *echo.Context, v echomiddleware.RequestLoggerValues) error {
+			if v.Error == nil {
+				slog.LogAttrs(context.Background(), slog.LevelInfo, "REQUEST",
+					slog.String("uri", v.URI),
+					slog.Int("status", v.Status),
+				)
+			} else {
+				slog.LogAttrs(context.Background(), slog.LevelError, "REQUEST_ERROR",
+					slog.String("uri", v.URI),
+					slog.Int("status", v.Status),
+					slog.String("err", v.Error.Error()),
+				)
+			}
+			return nil
+		},
 	}))
 	app.GET("/api", func(c *echo.Context) error {
 		return c.JSON(200, map[string]string{"status": "cookies", "with": "milk"})
