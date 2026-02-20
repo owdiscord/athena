@@ -9,7 +9,7 @@ import (
 )
 
 func (h *Handler) GetArchive(c *echo.Context) error {
-	archive, err := h.db.GetArchive(c.Request().Context(), c.Param("id"))
+	archive, err := h.db.GetArchive(c.Request().Context(), c.Param("id"), h.key)
 	if err != nil {
 		c.Logger().Error("couldn't retrieve archive", "sql_error", err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError, "could not get archive: server error")
