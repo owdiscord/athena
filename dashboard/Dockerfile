@@ -19,11 +19,11 @@ COPY dashboard ./dashboard
 WORKDIR /app/dashboard
 RUN bun run build
 
-FROM busybox:uclibc
+FROM busybox:musl
 COPY --from=builder /app/dashboard/dist /www
 
-# Silly SPA hack
-RUN cp /www/index.html /www/404.html
+# BusyBox httpd config for SPA fallback
+RUN printf "E404:/index.html\n" > /etc/httpd.conf
 
 EXPOSE 8080
-CMD ["busybox", "httpd", "-f", "-p", "8080", "-h", "/www"]
+CMD ["busybox", "httpd", "-f", "-p", "0.0.0.0:8080", "-h", "/var/www/app", "-c", "/etc/httpd.conf"]
