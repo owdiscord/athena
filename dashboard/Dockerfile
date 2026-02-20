@@ -22,8 +22,8 @@ RUN bun run build
 FROM busybox:uclibc
 COPY --from=builder /app/dashboard/dist /www
 
-# Redirect 404s to index.html for SPA routing
-RUN echo -e 'E404:index.html' > /www/httpd.conf
+# Silly SPA hack
+RUN cp /www/index.html /www/404.html
 
 EXPOSE 8080
 CMD ["busybox", "httpd", "-f", "-p", "8080", "-h", "/www"]
