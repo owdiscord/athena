@@ -53,7 +53,7 @@ func (db *DB) GetUserIDByAPIKey(ctx context.Context, apiKey string) (string, err
 	}
 	var login models.APILogin
 
-	if err := db.conn.GetContext(ctx, &login, "SELECT * FROM api_logins WHERE id = ? AND expires_at > now() LIMIT 1", loginID); err != nil {
+	if err := db.conn.GetContext(ctx, &login, "SELECT id, token, user_id, logged_in_at, expires_at FROM api_logins WHERE id = ? AND expires_at > now() LIMIT 1", loginID); err != nil {
 		return "", err
 	}
 

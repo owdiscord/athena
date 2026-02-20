@@ -10,11 +10,11 @@ import (
 )
 
 type APILogin struct {
-	ID         string
-	Token      string
-	UserID     string
-	LoggedInAt string
-	ExpiresAt  string
+	ID         string     `db:"id"`
+	Token      string     `db:"token"`
+	UserID     string     `db:"user_id"`
+	LoggedInAt *time.Time `db:"logged_in_at"`
+	ExpiresAt  *time.Time `db:"expires_at"`
 }
 
 type Guild struct {

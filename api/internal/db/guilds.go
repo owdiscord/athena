@@ -13,8 +13,13 @@ import (
 
 func (db *DB) GetGuildsForUser(ctx context.Context, userID string) ([]models.Guild, error) {
 	var guilds []models.Guild
+	// ID        string     `db:"id"`
+	// Name      string     `db:"name"`
+	// Icon      *string    `db:"icon"`
+	// OwnerID   string     `db:"owner_id"`
+	// UpdatedAt *time.Time `db:"updated_at"
 	err := db.conn.SelectContext(ctx, &guilds, `
-		SELECT ag.*
+		SELECT ag.id, ag.name, ag.icon, ag.owner_id, ag.updated_at
 		FROM allowed_guilds ag
 		INNER JOIN api_permissions ap
 			ON ap.guild_id = ag.id
@@ -27,7 +32,7 @@ func (db *DB) GetGuildsForUser(ctx context.Context, userID string) ([]models.Gui
 func (db *DB) GetGuild(ctx context.Context, guildID string) (*models.Guild, error) {
 	var guild models.Guild
 	err := db.conn.GetContext(ctx, &guild, `
-		SELECT * FROM allowed_guilds WHERE id = ?
+		SELECT id, name, icon, owner_id, updated_at FROM allowed_guilds WHERE id = ?
 	`, guildID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
@@ -52,7 +57,7 @@ func (db *DB) GetPermissionsByUserID(ctx context.Context, userID string) ([]mode
 		ExpiresAt   *time.Time `db:"expires_at"`
 	}
 	err := db.conn.SelectContext(ctx, &rows, `
-		SELECT * FROM api_permissions WHERE type = 'USER' AND target_id = ?
+		SELECT guild_id, "type", target_id, permissions, expires_at FROM api_permissions WHERE type = 'USER' AND target_id = ?
 	`, userID)
 	if err != nil {
 		return nil, err
@@ -69,7 +74,7 @@ func (db *DB) GetPermissionsByGuildID(ctx context.Context, guildID string) ([]mo
 		ExpiresAt   *time.Time `db:"expires_at"`
 	}
 	err := db.conn.SelectContext(ctx, &rows, `
-		SELECT * FROM api_permissions WHERE guild_id = ?
+		SELECT guild_id, "type", target_id, permissions, expires_at FROM api_permissions WHERE guild_id = ?
 	`, guildID)
 	if err != nil {
 		return nil, err
@@ -86,7 +91,7 @@ func (db *DB) GetPermissionsByGuildAndUserID(ctx context.Context, guildID, userI
 		ExpiresAt   *time.Time `db:"expires_at"`
 	}
 	err := db.conn.GetContext(ctx, &row, `
-		SELECT * FROM api_permissions
+		SELECT guild_id, "type", target_id, permissions, expires_at FROM api_permissions
 		WHERE guild_id = ? AND type = 'USER' AND target_id = ?
 	`, guildID, userID)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -152,7 +157,7 @@ func (db *DB) ClearExpiredPermissions(ctx context.Context) error {
 func (db *DB) GetActiveConfig(ctx context.Context, key string) (*models.Config, error) {
 	var config models.Config
 	err := db.conn.GetContext(ctx, &config, `
-		SELECT * FROM configs WHERE key = ? ORDER BY created_at DESC LIMIT 1
+		SELECT key, config, user_id, created_at FROM configs WHERE key = ? ORDER BY created_at DESC LIMIT 1
 	`, key)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
