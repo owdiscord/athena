@@ -24,8 +24,7 @@ jobs:
               - 'shared/**'
               - '.github/workflows/**'
             api:
-              - 'backend/**'
-              - 'shared/**'
+              - 'api/**'
               - '.github/workflows/**'
             dashboard:
               - 'dashboard/**'
