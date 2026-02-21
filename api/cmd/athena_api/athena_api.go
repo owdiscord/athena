@@ -65,7 +65,7 @@ func main() {
 		return c.JSON(200, map[string]string{"status": "cookies", "with": "milk"})
 	})
 	app.GET("/api/auth/login", handlers.OAuthLogin)
-	app.GET("/api/auth/validate-key", handlers.OAuthValidateKey)
+	app.POST("/api/auth/validate-key", handlers.OAuthValidateKey)
 	app.GET("/api/auth/oauth-callback", handlers.OAuthCallback)
 
 	// Redirect historic path to new path
