@@ -5,13 +5,13 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/google/uuid"
 	"github.com/owdiscord/athena/api/internal/models"
-	"github.com/owdiscord/athena/api/internal/services/discord"
 )
 
 func (db *DB) CreateAPIKey(ctx context.Context, userID string) (string, error) {
@@ -88,14 +88,21 @@ func (db *DB) RefreshAPIKeyExpiry(ctx context.Context, apiKey string) error {
 	return err
 }
 
-func (db *DB) UpsertUser(ctx context.Context, user *discord.User) error {
-	_, err := db.conn.ExecContext(ctx, `
-		INSERT INTO api_user_info (id, username, discriminator, avatar)
-		VALUES (?, ?, '0000', ?)
-		ON DUPLICATE KEY UPDATE
-			username = VALUES(username),
-			avatar = VALUES(avatar)
-	`, user.ID, user.Username, user.Avatar)
+func (db *DB) UpsertUserInfo(ctx context.Context, userID, username, avatar string) error {
+	// Matches TypeORM simple-json format exactly
+	data, err := json.Marshal(map[string]string{
+		"username":      username,
+		"discriminator": "0",
+		"avatar":        avatar,
+	})
+	if err != nil {
+		return err
+	}
+	_, err = db.conn.ExecContext(ctx, `
+        INSERT INTO api_user_info (id, data, updated_at)
+        VALUES (?, ?, NOW())
+        ON DUPLICATE KEY UPDATE data = VALUES(data), updated_at = NOW()
+    `, userID, string(data))
 	return err
 }
 
