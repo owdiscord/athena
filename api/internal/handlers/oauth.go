@@ -40,7 +40,7 @@ func (h *Handler) OAuthCallback(c *echo.Context) error {
 		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess&msg=cantMakeKey"))
 	}
 
-	if err := h.db.UpsertUser(c.Request().Context(), user); err != nil {
+	if err := h.db.UpsertUserInfo(c.Request().Context(), user.ID, user.Username, user.Avatar); err != nil {
 		c.Logger().Error("no_upsert", "db_err", err)
 		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess&msg=cantUpsert"))
 	}
