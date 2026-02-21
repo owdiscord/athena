@@ -110,7 +110,7 @@ func (h *Handler) SaveConfig(c *echo.Context) error {
 
 	current, err := h.db.GetActiveConfig(c.Request().Context(), "guild-"+guildID)
 	if err == nil && current != nil && config == current.Config {
-		return c.NoContent(http.StatusOK)
+		return c.JSON(http.StatusOK, map[string]any{"result": "ok"})
 	}
 
 	if err := validateYAML(config); err != nil {
@@ -141,7 +141,7 @@ func (h *Handler) SaveConfig(c *echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "server error")
 	}
 
-	return c.NoContent(http.StatusOK)
+	return c.JSON(http.StatusOK, map[string]any{"result": "ok"})
 }
 
 func (h *Handler) GetPermissions(c *echo.Context) error {
