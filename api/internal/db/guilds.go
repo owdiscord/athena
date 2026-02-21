@@ -148,9 +148,7 @@ func (db *DB) ClearExpiredPermissions(ctx context.Context) error {
 
 func (db *DB) GetActiveConfig(ctx context.Context, key string) (*models.Config, error) {
 	var config models.Config
-	err := db.conn.GetContext(ctx, &config, `
-		SELECT key, config, user_id, created_at FROM configs WHERE key = ? ORDER BY created_at DESC LIMIT 1
-	`, key)
+	err := db.conn.GetContext(ctx, &config, "SELECT `key`, config, user_id, created_at FROM configs WHERE `key` = ? ORDER BY created_at DESC LIMIT 1", key)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -158,9 +156,7 @@ func (db *DB) GetActiveConfig(ctx context.Context, key string) (*models.Config, 
 }
 
 func (db *DB) SaveConfigRevision(ctx context.Context, key, config, userID string) error {
-	_, err := db.conn.ExecContext(ctx, `
-		INSERT INTO configs (key, config, user_id, created_at) VALUES (?, ?, ?, NOW())
-	`, key, config, userID)
+	_, err := db.conn.ExecContext(ctx, "INSERT INTO configs (`key`, config, user_id, created_at) VALUES (?, ?, ?, NOW())", key, config, userID)
 	return err
 }
 
