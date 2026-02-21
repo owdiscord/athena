@@ -48,6 +48,25 @@ func (h *Handler) OAuthCallback(c *echo.Context) error {
 	return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?apiKey="+apiKey))
 }
 
+func (h *Handler) OAuthValidateKey(c *echo.Context) error {
+	var body struct {
+		Key string `json:"key"`
+	}
+	if err := c.Bind(&body); err != nil || body.Key == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "No key supplied"})
+	}
+
+	userID, err := h.db.GetUserIDByAPIKey(c.Request().Context(), body.Key)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Internal server error"})
+	}
+	if userID == "" {
+		return c.JSON(http.StatusOK, map[string]bool{"valid": false})
+	}
+
+	return c.JSON(http.StatusOK, map[string]any{"valid": true, "userId": userID})
+}
+
 func (h *Handler) Logout(c *echo.Context) error {
 	apiKey := c.Request().Header.Get("X-Api-Key")
 	if err := h.db.ExpireAPIKey(c.Request().Context(), apiKey); err != nil {
