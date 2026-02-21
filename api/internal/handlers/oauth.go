@@ -14,32 +14,35 @@ func (h *Handler) OAuthLogin(c *echo.Context) error {
 func (h *Handler) OAuthCallback(c *echo.Context) error {
 	code := c.QueryParam("code")
 	if code == "" {
-		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess"))
+		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess&msg=noCode"))
 	}
 
 	resp, err := h.discord.Exchange(code)
 	if err != nil {
-		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess"))
+		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess&msg=noExchange"))
 	}
 
 	user, err := discord.GetUser(resp.AccessToken)
 	if err != nil {
-		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess"))
+		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess&msg=noToken"))
 	}
 
 	// Check the user has access to at least one guild
 	perms, err := h.db.GetPermissionsByUserID(c.Request().Context(), user.ID)
 	if err != nil || len(perms) == 0 {
-		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess"))
+		c.Logger().Error("no_perms", "db_err", err)
+		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess&msg=noPerms"))
 	}
 
 	apiKey, err := h.db.CreateAPIKey(c.Request().Context(), user.ID)
 	if err != nil {
-		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess"))
+		c.Logger().Error("no_api_key", "db_err", err)
+		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess&msg=cantMakeKey"))
 	}
 
 	if err := h.db.UpsertUser(c.Request().Context(), user); err != nil {
-		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess"))
+		c.Logger().Error("no_upsert", "db_err", err)
+		return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?error=noAccess&msg=cantUpsert"))
 	}
 
 	return c.Redirect(http.StatusTemporaryRedirect, dashboardURL("/login-callback?apiKey="+apiKey))

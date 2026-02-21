@@ -13,11 +13,6 @@ import (
 
 func (db *DB) GetGuildsForUser(ctx context.Context, userID string) ([]models.Guild, error) {
 	var guilds []models.Guild
-	// ID        string     `db:"id"`
-	// Name      string     `db:"name"`
-	// Icon      *string    `db:"icon"`
-	// OwnerID   string     `db:"owner_id"`
-	// UpdatedAt *time.Time `db:"updated_at"
 	err := db.conn.SelectContext(ctx, &guilds, `
 		SELECT ag.id, ag.name, ag.icon, ag.owner_id, ag.updated_at
 		FROM allowed_guilds ag
