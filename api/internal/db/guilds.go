@@ -43,14 +43,16 @@ func (db *DB) IsGuildAllowed(ctx context.Context, guildID string) (bool, error) 
 	return count > 0, err
 }
 
+type rawPermissions struct {
+	GuildID     string     `db:"guild_id"`
+	Type        string     `db:"type"`
+	TargetID    string     `db:"target_id"`
+	Permissions string     `db:"permissions"` // JSON array
+	ExpiresAt   *time.Time `db:"expires_at"`
+}
+
 func (db *DB) GetPermissionsByUserID(ctx context.Context, userID string) ([]models.PermissionAssignment, error) {
-	var rows []struct {
-		GuildID     string     `db:"guild_id"`
-		Type        string     `db:"type"`
-		TargetID    string     `db:"target_id"`
-		Permissions string     `db:"permissions"` // JSON array
-		ExpiresAt   *time.Time `db:"expires_at"`
-	}
+	var rows []rawPermissions
 	err := db.conn.SelectContext(ctx, &rows, `
 		SELECT guild_id, "type", target_id, permissions, expires_at FROM api_permissions WHERE type = 'USER' AND target_id = ?
 	`, userID)
@@ -61,13 +63,7 @@ func (db *DB) GetPermissionsByUserID(ctx context.Context, userID string) ([]mode
 }
 
 func (db *DB) GetPermissionsByGuildID(ctx context.Context, guildID string) ([]models.PermissionAssignment, error) {
-	var rows []struct {
-		GuildID     string     `db:"guild_id"`
-		Type        string     `db:"type"`
-		TargetID    string     `db:"target_id"`
-		Permissions string     `db:"permissions"`
-		ExpiresAt   *time.Time `db:"expires_at"`
-	}
+	var rows []rawPermissions
 	err := db.conn.SelectContext(ctx, &rows, `
 		SELECT guild_id, "type", target_id, permissions, expires_at FROM api_permissions WHERE guild_id = ?
 	`, guildID)
@@ -183,13 +179,7 @@ func (db *DB) AddAuditLog(ctx context.Context, guildID, userID, eventType string
 // --- helpers ---
 
 // scanPermissions handles deserializing the JSON permissions column
-func scanPermissions(rows []struct {
-	GuildID     string     `db:"guild_id"`
-	Type        string     `db:"type"`
-	TargetID    string     `db:"target_id"`
-	Permissions string     `db:"permissions"`
-	ExpiresAt   *time.Time `db:"expires_at"`
-}) ([]models.PermissionAssignment, error) {
+func scanPermissions(rows []rawPermissions) ([]models.PermissionAssignment, error) {
 	result := make([]models.PermissionAssignment, 0, len(rows))
 	for _, row := range rows {
 		perms, err := parsePermissions(row.Permissions)
