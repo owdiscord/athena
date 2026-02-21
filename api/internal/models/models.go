@@ -34,10 +34,10 @@ type PermissionAssignment struct {
 }
 
 type Config struct {
-	Key       string    `db:"key" json:"key"`
-	Config    string    `db:"config" json:"config"`
-	UserID    string    `db:"user_id" json:"user_id"`
-	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	Key      string    `db:"key" json:"key"`
+	Config   string    `db:"config" json:"config"`
+	EditedBy string    `db:"edited_by" json:"edited_by"`
+	EditedAt time.Time `db:"edited_at" json:"edited_at"`
 }
 
 type AuditLog struct {

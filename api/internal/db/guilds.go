@@ -7,6 +7,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/owdiscord/athena/api/internal/models"
 	"github.com/owdiscord/athena/api/internal/permissions"
 )
@@ -148,15 +149,20 @@ func (db *DB) ClearExpiredPermissions(ctx context.Context) error {
 
 func (db *DB) GetActiveConfig(ctx context.Context, key string) (*models.Config, error) {
 	var config models.Config
-	err := db.conn.GetContext(ctx, &config, "SELECT `key`, config, user_id, created_at FROM configs WHERE `key` = ? ORDER BY created_at DESC LIMIT 1", key)
+	err := db.conn.GetContext(ctx, &config, "SELECT `key`, config, edited_by, created_at FROM configs WHERE `key` = ? ORDER BY created_at DESC LIMIT 1", key)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	return &config, err
 }
 
-func (db *DB) SaveConfigRevision(ctx context.Context, key, config, userID string) error {
-	_, err := db.conn.ExecContext(ctx, "INSERT INTO configs (`key`, config, user_id, created_at) VALUES (?, ?, ?, NOW())", key, config, userID)
+func (db *DB) MarkOldConfigsInactive(tx *sqlx.Tx, ctx context.Context, key string) error {
+	_, err := tx.ExecContext(ctx, "UPDATE configs SET is_active = false WHERE `key` = ?", key)
+	return err
+}
+
+func (db *DB) SaveConfigRevision(tx *sqlx.Tx, ctx context.Context, key, config, userID string) error {
+	_, err := tx.ExecContext(ctx, "INSERT INTO configs (`key`, config, edited_by, edited_at, is_active) VALUES (?, ?, ?, NOW(), true)", key, config, userID)
 	return err
 }
 
@@ -166,7 +172,7 @@ func (db *DB) AddAuditLog(ctx context.Context, guildID, userID, eventType string
 		return err
 	}
 	_, err = db.conn.ExecContext(ctx, `
-		INSERT INTO audit_logs (guild_id, user_id, event_type, data, created_at)
+		INSERT INTO audit_logs (guild_id, edited_by, event_type, data, created_at)
 		VALUES (?, ?, ?, ?, NOW())
 	`, guildID, userID, eventType, string(dataJSON))
 	return err

@@ -117,8 +117,27 @@ func (h *Handler) SaveConfig(c *echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string][]string{"errors": {err.Error()}})
 	}
 
-	if err := h.db.SaveConfigRevision(c.Request().Context(), "guild-"+guildID, config, userID); err != nil {
-		c.Logger().Error("couldn't retrieve guild", "sql_error", err.Error(), "guildID", guildID, "userID", userID)
+	tx, err := h.db.Tx()
+	if err != nil {
+		c.Logger().Error("cannot start transaction to save new config", "tx_err", err)
+		return c.JSON(http.StatusInternalServerError, map[string][]string{"errors": {err.Error()}})
+	}
+
+	if err := h.db.MarkOldConfigsInactive(tx, c.Request().Context(), "guild-"+guildID); err != nil {
+		tx.Rollback()
+		c.Logger().Error("couldn't mark old configs inactive", "sql_error", err.Error(), "guildID", guildID, "userID", userID)
+		return echo.NewHTTPError(http.StatusInternalServerError, "server error")
+	}
+
+	if err := h.db.SaveConfigRevision(tx, c.Request().Context(), "guild-"+guildID, config, userID); err != nil {
+		tx.Rollback()
+		c.Logger().Error("couldn't save new config", "sql_error", err.Error(), "guildID", guildID, "userID", userID)
+		return echo.NewHTTPError(http.StatusInternalServerError, "server error")
+	}
+
+	if err := tx.Commit(); err != nil {
+		tx.Rollback()
+		c.Logger().Error("couldn't commit config transaction", "tx_err", err.Error(), "guildID", guildID, "userID", userID)
 		return echo.NewHTTPError(http.StatusInternalServerError, "server error")
 	}
 

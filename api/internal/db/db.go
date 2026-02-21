@@ -21,3 +21,7 @@ func New(connectionString string) (*DB, error) {
 		sql,
 	}, nil
 }
+
+func (db *DB) Tx() (*sqlx.Tx, error) {
+	return db.conn.Beginx()
+}
