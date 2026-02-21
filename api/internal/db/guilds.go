@@ -149,7 +149,7 @@ func (db *DB) ClearExpiredPermissions(ctx context.Context) error {
 
 func (db *DB) GetActiveConfig(ctx context.Context, key string) (*models.Config, error) {
 	var config models.Config
-	err := db.conn.GetContext(ctx, &config, "SELECT `key`, config, edited_by, created_at FROM configs WHERE `key` = ? ORDER BY created_at DESC LIMIT 1", key)
+	err := db.conn.GetContext(ctx, &config, "SELECT `key`, config, edited_by, edited_at FROM configs WHERE `key` = ? AND is_active = true ORDER BY edited_at DESC LIMIT 1", key)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
