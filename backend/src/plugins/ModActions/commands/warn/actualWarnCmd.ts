@@ -1,4 +1,9 @@
-import { Attachment, ChatInputCommandInteraction, GuildMember, Message } from "discord.js";
+import {
+  Attachment,
+  ChatInputCommandInteraction,
+  GuildMember,
+  Message,
+} from "discord.js";
 import { GuildPluginData } from "vety";
 import { CaseTypes } from "../../../../data/CaseTypes.js";
 import { UserNotificationMethod, renderUsername } from "../../../../utils.js";
@@ -22,47 +27,106 @@ export async function actualWarnCmd(
   attachments: Attachment[],
   contactMethods?: UserNotificationMethod[],
 ) {
-  if (await handleAttachmentLinkDetectionAndGetRestriction(pluginData, context, reason)) {
-    return;
-  }
-
-  const config = pluginData.config.get();
-  const formattedReason = await formatReasonWithMessageLinkForAttachments(pluginData, reason, context, attachments);
-  const formattedReasonWithAttachments = formatReasonWithAttachments(reason, attachments);
-
-  const casesPlugin = pluginData.getPlugin(CasesPlugin);
-  const priorWarnAmount = await casesPlugin.getCaseTypeAmountForUserId(memberToWarn.id, CaseTypes.Warn);
-  if (config.warn_notify_enabled && priorWarnAmount >= config.warn_notify_threshold) {
-    const reply = await waitForButtonConfirm(
+  // Check that we aren't including any internally used links (modmail loglink, archive link, etc)
+  if (
+    reason.includes("owdiscord.org") ||
+    reason.includes("ow2discord.org") ||
+    reason.includes("dragory.net")
+  ) {
+    const confirmed = await waitForButtonConfirm(
       context,
-      { content: config.warn_notify_message.replace("{priorWarnings}", `${priorWarnAmount}`) },
-      { confirmText: "Yes", cancelText: "No", restrictToId: authorId },
+      {
+        content: `! You have included an **internal URL** in this warning, which is sent to the user. Are you sure this is intended?`,
+      },
+      { restrictToId: authorId },
     );
-    if (!reply) {
-      await pluginData.state.common.sendErrorMessage(context, "Warn cancelled by moderator");
+
+    if (!confirmed) {
+      pluginData.state.common.sendErrorMessage(context, "Warning cancelled.");
       return;
     }
   }
 
-  const warnResult = await warnMember(pluginData, memberToWarn, formattedReason, formattedReasonWithAttachments, {
-    contactMethods,
-    caseArgs: {
-      modId: mod.id,
-      ppId: mod.id !== authorId ? authorId : undefined,
-      reason: formattedReason,
+  if (
+    await handleAttachmentLinkDetectionAndGetRestriction(
+      pluginData,
+      context,
+      reason,
+    )
+  ) {
+    return;
+  }
+
+  const config = pluginData.config.get();
+  const formattedReason = await formatReasonWithMessageLinkForAttachments(
+    pluginData,
+    reason,
+    context,
+    attachments,
+  );
+  const formattedReasonWithAttachments = formatReasonWithAttachments(
+    reason,
+    attachments,
+  );
+
+  const casesPlugin = pluginData.getPlugin(CasesPlugin);
+  const priorWarnAmount = await casesPlugin.getCaseTypeAmountForUserId(
+    memberToWarn.id,
+    CaseTypes.Warn,
+  );
+  if (
+    config.warn_notify_enabled &&
+    priorWarnAmount >= config.warn_notify_threshold
+  ) {
+    const reply = await waitForButtonConfirm(
+      context,
+      {
+        content: config.warn_notify_message.replace(
+          "{priorWarnings}",
+          `${priorWarnAmount}`,
+        ),
+      },
+      { confirmText: "Yes", cancelText: "No", restrictToId: authorId },
+    );
+    if (!reply) {
+      await pluginData.state.common.sendErrorMessage(
+        context,
+        "Warn cancelled by moderator",
+      );
+      return;
+    }
+  }
+
+  const warnResult = await warnMember(
+    pluginData,
+    memberToWarn,
+    formattedReason,
+    formattedReasonWithAttachments,
+    {
+      contactMethods,
+      caseArgs: {
+        modId: mod.id,
+        ppId: mod.id !== authorId ? authorId : undefined,
+        reason: formattedReason,
+      },
+      retryPromptContext: context,
     },
-    retryPromptContext: context,
-  });
+  );
 
   if (warnResult.status === "failed") {
     const failReason = warnResult.error ? `: ${warnResult.error}` : "";
 
-    await pluginData.state.common.sendErrorMessage(context, `Failed to warn user${failReason}`);
+    await pluginData.state.common.sendErrorMessage(
+      context,
+      `Failed to warn user${failReason}`,
+    );
 
     return;
   }
 
-  const messageResultText = warnResult.notifyResult.text ? ` (${warnResult.notifyResult.text})` : "";
+  const messageResultText = warnResult.notifyResult.text
+    ? ` (${warnResult.notifyResult.text})`
+    : "";
 
   await pluginData.state.common.sendSuccessMessage(
     context,
