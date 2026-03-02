@@ -1,5 +1,6 @@
 # Athena
 ![Athena Logo](assets/logo-transparent.png)
+
 Athena the moderation bot for the [Overwatch Discord server](https://owdiscord.org), forked from [Zeppelin](https://github.com/ZeppelinBot/Zeppelin). Infinite gratitude to Dragory for providing Zeppelin to our community for so many years. If you are looking for a battle-tested moderation bot for your community, Zeppelin is your best choice.
 
 ## Running
