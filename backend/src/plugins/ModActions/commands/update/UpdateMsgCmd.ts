@@ -1,3 +1,4 @@
+import { waitForButtonConfirm } from "utils/waitForInteraction.js";
 import { commandTypeHelpers as ct } from "../../../../commandTypes.js";
 import { updateCase } from "../../functions/updateCase.js";
 import { modActionsMsgCmd } from "../../types.js";
@@ -19,6 +20,25 @@ export const UpdateMsgCmd = modActionsMsgCmd({
   ],
 
   async run({ pluginData, message: msg, args }) {
-    await updateCase(pluginData, msg, msg.author, args.caseNumber, args.note, [...msg.attachments.values()]);
+    const caseNumber = args.caseNumber;
+
+    if (caseNumber != null && caseNumber < 1000) {
+      const confirmed = await waitForButtonConfirm(
+        msg,
+        {
+          content: `! Case \`#${caseNumber}\` is a low-numbered case. Are you sure you want to update it?`,
+        },
+        { restrictToId: msg.author.id },
+      );
+
+      if (!confirmed) {
+        pluginData.state.common.sendErrorMessage(msg, "Update cancelled.");
+        return;
+      }
+    }
+
+    await updateCase(pluginData, msg, msg.author, caseNumber, args.note, [
+      ...msg.attachments.values(),
+    ]);
   },
 });
