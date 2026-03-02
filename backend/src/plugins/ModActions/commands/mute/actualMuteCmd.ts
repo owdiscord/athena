@@ -27,7 +27,7 @@ import {
   formatReasonWithMessageLinkForAttachments,
 } from "../../functions/formatReasonForAttachments.js";
 import { ModActionsPluginType } from "../../types.js";
-import { waitForButtonConfirm } from "utils/waitForInteraction.js";
+import { waitForButtonConfirm } from "../../../../utils/waitForInteraction.js";
 
 /**
  * The actual function run by both !mute and !forcemute.
