@@ -39,8 +39,14 @@ import tlds from "tlds" with { type: "json" };
 import tmp from "tmp";
 import { URL } from "url";
 import { z, ZodError, ZodPipe, ZodRecord, ZodString, ZodTransform } from "zod";
-import { ISavedMessageAttachmentData, SavedMessage } from "./data/entities/SavedMessage.js";
-import { delayStringMultipliers, humanizeDuration } from "./humanizeDuration.js";
+import {
+  ISavedMessageAttachmentData,
+  SavedMessage,
+} from "./data/entities/SavedMessage.js";
+import {
+  delayStringMultipliers,
+  humanizeDuration,
+} from "./humanizeDuration.js";
 import { getProfiler } from "./profiler.js";
 import { SimpleCache } from "./SimpleCache.js";
 import { sendDM } from "./utils/sendDM.js";
@@ -66,7 +72,9 @@ export const EMPTY_CHAR = "\u200b";
 // https://discord.com/developers/docs/reference#snowflakes
 export const MIN_SNOWFLAKE = 0b000000000000000000000000000000000000000000_00001_00001_000000000001;
 // 0b111111111111111111111111111111111111111111_11111_11111_111111111111 without _ which BigInt doesn't support
-export const MAX_SNOWFLAKE = BigInt("0b1111111111111111111111111111111111111111111111111111111111111111");
+export const MAX_SNOWFLAKE = BigInt(
+  "0b1111111111111111111111111111111111111111111111111111111111111111",
+);
 
 const snowflakePattern = /^[1-9]\d+$/;
 export function isValidSnowflake(str: string) {
@@ -80,7 +88,9 @@ export const DISCORD_HTTP_ERROR_NAME = "DiscordHTTPError";
 export const DISCORD_REST_ERROR_NAME = "DiscordAPIError";
 
 export function isDiscordHTTPError(err: Error | string) {
-  return typeof err === "object" && err.constructor?.name === DISCORD_HTTP_ERROR_NAME;
+  return (
+    typeof err === "object" && err.constructor?.name === DISCORD_HTTP_ERROR_NAME
+  );
 }
 
 export function isDiscordAPIError(err: Error | string): err is DiscordAPIError {
@@ -119,7 +129,9 @@ export function getScalarDifference<T extends object>(
 // This is a stupid, messy solution that is not extendable at all.
 // If anyone plans on adding anything to this, they should rewrite this first.
 // I just want to get this done and this works for now :)
-export function prettyDifference(diff: Map<string, { was: any; is: any }>): Map<string, { was: any; is: any }> {
+export function prettyDifference(
+  diff: Map<string, { was: any; is: any }>,
+): Map<string, { was: any; is: any }> {
   const toReturn = new Map<string, { was: any; is: any }>();
 
   for (let [key, difference] of diff) {
@@ -135,7 +147,9 @@ export function prettyDifference(diff: Map<string, { was: any; is: any }>): Map<
   return toReturn;
 }
 
-export function differenceToString(diff: Map<string, { was: any; is: any }>): string {
+export function differenceToString(
+  diff: Map<string, { was: any; is: any }>,
+): string {
   let toReturn = "";
   diff = prettyDifference(diff);
   for (const [key, difference] of diff) {
@@ -181,7 +195,9 @@ export class InvalidRegexError extends Error {}
  */
 export function inputPatternToRegExp(pattern: string) {
   const advancedSyntaxMatch = pattern.match(regexWithFlags);
-  const [finalPattern, flags] = advancedSyntaxMatch ? [advancedSyntaxMatch[1], advancedSyntaxMatch[2]] : [pattern, ""];
+  const [finalPattern, flags] = advancedSyntaxMatch
+    ? [advancedSyntaxMatch[1], advancedSyntaxMatch[2]]
+    : [pattern, ""];
   try {
     return new RegExp(finalPattern, flags);
   } catch (e) {
@@ -274,7 +290,8 @@ export const zEmbedInput = z
     id: "embedInput",
   });
 
-export type EmbedWith<T extends keyof APIEmbed> = APIEmbed & Pick<Required<APIEmbed>, T>;
+export type EmbedWith<T extends keyof APIEmbed> = APIEmbed &
+  Pick<Required<APIEmbed>, T>;
 
 export const zStrictMessageContent = z
   .strictObject({
@@ -306,9 +323,14 @@ export type StrictMessageContent = {
 };
 
 export type MessageContent = string | StrictMessageContent;
-export const zMessageContent = z.union([zBoundedCharacters(0, 4000), zStrictMessageContent]);
+export const zMessageContent = z.union([
+  zBoundedCharacters(0, 4000),
+  zStrictMessageContent,
+]);
 
-export function validateAndParseMessageContent(input: unknown): StrictMessageContent {
+export function validateAndParseMessageContent(
+  input: unknown,
+): StrictMessageContent {
   if (input == null) {
     return {};
   }
@@ -326,7 +348,9 @@ export function validateAndParseMessageContent(input: unknown): StrictMessageCon
   dropNullValuesRecursively(input);
 
   try {
-    return zStrictMessageContent.parse(input) as unknown as StrictMessageContent;
+    return zStrictMessageContent.parse(
+      input,
+    ) as unknown as StrictMessageContent;
   } catch (err) {
     if (err instanceof ZodError) {
       // TODO: Allow error to be thrown and handle at use location
@@ -432,7 +456,10 @@ export function convertDelayStringToMS(str, defaultUnit = "m"): number | null {
 
   // tslint:disable-next-line
   while (str !== "" && (match = str.match(regex)) !== null) {
-    ms += match[1] * ((match[2] && delayStringMultipliers[match[2]]) || delayStringMultipliers[defaultUnit]);
+    ms +=
+      match[1] *
+      ((match[2] && delayStringMultipliers[match[2]]) ||
+        delayStringMultipliers[defaultUnit]);
     str = str.slice(match[0].length);
   }
 
@@ -463,11 +490,14 @@ export function convertMSToDelayString(ms: number): string {
   return result;
 }
 
-export function successMessage(str: string, emoji = "<:zep_check:906897402101891093>") {
+export function successMessage(
+  str: string,
+  emoji = "<:zep_check:906897402101891093>",
+) {
   return emoji ? `${emoji} ${str}` : str;
 }
 
-export function errorMessage(str, emoji = "⚠") {
+export function errorMessage(str, emoji = "!") {
   return emoji ? `${emoji} ${str}` : str;
 }
 
@@ -535,7 +565,10 @@ export function sleep(ms: number): Promise<void> {
 const realLinkRegex = /https?:\/\/\S+/; // http://anything or https://anything
 const plainLinkRegex = /((?!https?:\/\/)\S)+\.\S+/; // anything.anything, without http:// or https:// preceding it
 // Both of the above, with precedence on the first one
-const urlRegex = new RegExp(`(${realLinkRegex.source}|${plainLinkRegex.source})`, "g");
+const urlRegex = new RegExp(
+  `(${realLinkRegex.source}|${plainLinkRegex.source})`,
+  "g",
+);
 const protocolRegex = /^[a-z]+:\/\//;
 
 interface MatchedURL extends URL {
@@ -613,7 +646,9 @@ export function getInviteCodesInString(str: string): string[] {
 
   // Deep detection via URL parsing
   const linksInString = getUrlsInString(str, true);
-  const potentialInviteLinks = linksInString.filter((url) => isInviteHostRegex.test(url.hostname));
+  const potentialInviteLinks = linksInString.filter((url) =>
+    isInviteHostRegex.test(url.hostname),
+  );
   const withNormalizedPaths = potentialInviteLinks.map((url) => {
     url.pathname = url.pathname.replace(/\/{2,}/g, "/").replace(/\/+$/g, "");
     return url;
@@ -648,14 +683,21 @@ export function getInviteCodesInString(str: string): string[] {
 export const unicodeEmojiRegex = emojiRegex();
 export const customEmojiRegex = /<a?:(.*?):(\d+)>/;
 
-const matchAllEmojiRegex = new RegExp(`(${unicodeEmojiRegex.source})|(${customEmojiRegex.source})`, "g");
+const matchAllEmojiRegex = new RegExp(
+  `(${unicodeEmojiRegex.source})|(${customEmojiRegex.source})`,
+  "g",
+);
 
 export function getEmojiInString(str: string): string[] {
   return str.match(matchAllEmojiRegex) || [];
 }
 
 export function isEmoji(str: string): boolean {
-  return str.match(`^(${unicodeEmojiRegex.source})|(${customEmojiRegex.source})$`) !== null;
+  return (
+    str.match(
+      `^(${unicodeEmojiRegex.source})|(${customEmojiRegex.source})$`,
+    ) !== null
+  );
 }
 
 export function isUnicodeEmoji(str: string): boolean {
@@ -703,7 +745,12 @@ export function trimEmptyStartEndLines(str: string) {
     }
   }
 
-  return lines.slice(emptyLinesAtStart, emptyLinesAtEnd ? -1 * emptyLinesAtEnd : undefined).join("\n");
+  return lines
+    .slice(
+      emptyLinesAtStart,
+      emptyLinesAtEnd ? -1 * emptyLinesAtEnd : undefined,
+    )
+    .join("\n");
 }
 
 export function trimIndents(str: string, indentLength: number) {
@@ -823,7 +870,10 @@ export function chunkLines(str: string, maxChunkLength = 2000): string[] {
  * Default maxChunkLength is 1990, a bit under the message length limit of 2000, so we have space to add code block
  * shenanigans to the start/end when needed. Take this into account when choosing a custom maxChunkLength as well.
  */
-export function chunkMessageLines(str: string, maxChunkLength = 1990): string[] {
+export function chunkMessageLines(
+  str: string,
+  maxChunkLength = 1990,
+): string[] {
   const chunks = chunkLines(str, maxChunkLength);
   let openCodeBlock = false;
 
@@ -868,7 +918,10 @@ export async function createChunkedMessage(
 /**
  * Downloads the file from the given URL to a temporary file, with retry support
  */
-export function downloadFile(attachmentUrl: string, retries = 3): Promise<{ path: string; deleteFn: () => void }> {
+export function downloadFile(
+  attachmentUrl: string,
+  retries = 3,
+): Promise<{ path: string; deleteFn: () => void }> {
   return new Promise((resolve) => {
     tmp.file((err, path, fd, deleteFn) => {
       if (err) throw err;
@@ -892,7 +945,10 @@ export function downloadFile(attachmentUrl: string, retries = 3): Promise<{ path
           if (retries === 0) {
             throw httpsErr;
           } else {
-            console.warn("File download failed, retrying. Error given:", httpsErr.message); // tslint:disable-line
+            console.warn(
+              "File download failed, retrying. Error given:",
+              httpsErr.message,
+            ); // tslint:disable-line
             resolve(downloadFile(attachmentUrl, retries - 1));
           }
         });
@@ -901,7 +957,10 @@ export function downloadFile(attachmentUrl: string, retries = 3): Promise<{ path
 }
 
 type ItemWithRanking<T> = [T, number];
-export function simpleClosestStringMatch(searchStr: string, haystack: string[]): string | null;
+export function simpleClosestStringMatch(
+  searchStr: string,
+  haystack: string[],
+): string | null;
 export function simpleClosestStringMatch<T extends Not<any, string>>(
   searchStr,
   haystack: T[],
@@ -911,23 +970,29 @@ export function simpleClosestStringMatch(searchStr, haystack, getter?) {
   const normalizedSearchStr = searchStr.toLowerCase();
 
   // See if any haystack item contains a part of the search string
-  const itemsWithRankings: Array<ItemWithRanking<any>> = haystack.map((item) => {
-    const itemStr: string = getter ? getter(item) : item;
-    const normalizedItemStr = itemStr.toLowerCase();
+  const itemsWithRankings: Array<ItemWithRanking<any>> = haystack.map(
+    (item) => {
+      const itemStr: string = getter ? getter(item) : item;
+      const normalizedItemStr = itemStr.toLowerCase();
 
-    let i = 0;
-    do {
-      if (!normalizedItemStr.includes(normalizedSearchStr.slice(0, i + 1))) break;
-      i++;
-    } while (i < normalizedSearchStr.length);
+      let i = 0;
+      do {
+        if (!normalizedItemStr.includes(normalizedSearchStr.slice(0, i + 1)))
+          break;
+        i++;
+      } while (i < normalizedSearchStr.length);
 
-    if (i > 0 && normalizedItemStr.startsWith(normalizedSearchStr.slice(0, i))) {
-      // Slightly prioritize items that *start* with the search string
-      i += 0.5;
-    }
+      if (
+        i > 0 &&
+        normalizedItemStr.startsWith(normalizedSearchStr.slice(0, i))
+      ) {
+        // Slightly prioritize items that *start* with the search string
+        i += 0.5;
+      }
 
-    return [item, i] as ItemWithRanking<any>;
-  });
+      return [item, i] as ItemWithRanking<any>;
+    },
+  );
 
   // Sort by best match
   itemsWithRankings.sort((a, b) => {
@@ -945,7 +1010,10 @@ type sorterDirection = "ASC" | "DESC";
 type sorterGetterFn = (any) => any;
 type sorterGetterFnWithDirection = [sorterGetterFn, sorterDirection];
 type sorterGetterResolvable = string | sorterGetterFn;
-type sorterGetterResolvableWithDirection = [sorterGetterResolvable, sorterDirection];
+type sorterGetterResolvableWithDirection = [
+  sorterGetterResolvable,
+  sorterDirection,
+];
 type sorterFn = (a: any, b: any) => number;
 
 function resolveGetter(getter: sorterGetterResolvable): sorterGetterFn {
@@ -956,14 +1024,21 @@ function resolveGetter(getter: sorterGetterResolvable): sorterGetterFn {
   return getter;
 }
 
-export function multiSorter(getters: Array<sorterGetterResolvable | sorterGetterResolvableWithDirection>): sorterFn {
-  const resolvedGetters: sorterGetterFnWithDirection[] = getters.map((getter) => {
-    if (Array.isArray(getter)) {
-      return [resolveGetter(getter[0]), getter[1]] as sorterGetterFnWithDirection;
-    } else {
-      return [resolveGetter(getter), "ASC"] as sorterGetterFnWithDirection;
-    }
-  });
+export function multiSorter(
+  getters: Array<sorterGetterResolvable | sorterGetterResolvableWithDirection>,
+): sorterFn {
+  const resolvedGetters: sorterGetterFnWithDirection[] = getters.map(
+    (getter) => {
+      if (Array.isArray(getter)) {
+        return [
+          resolveGetter(getter[0]),
+          getter[1],
+        ] as sorterGetterFnWithDirection;
+      } else {
+        return [resolveGetter(getter), "ASC"] as sorterGetterFnWithDirection;
+      }
+    },
+  );
 
   return (a, b) => {
     for (const getter of resolvedGetters) {
@@ -977,7 +1052,10 @@ export function multiSorter(getters: Array<sorterGetterResolvable | sorterGetter
   };
 }
 
-export function sorter(getter: sorterGetterResolvable, direction: sorterDirection = "ASC"): sorterFn {
+export function sorter(
+  getter: sorterGetterResolvable,
+  direction: sorterDirection = "ASC",
+): sorterFn {
   return multiSorter([[getter, direction]]);
 }
 
@@ -989,7 +1067,9 @@ export type CustomEmoji = {
   id: string;
 } & Emoji;
 
-export type UserNotificationMethod = { type: "dm" } | { type: "channel"; channel: GuildTextBasedChannel };
+export type UserNotificationMethod =
+  | { type: "dm" }
+  | { type: "channel"; channel: GuildTextBasedChannel };
 
 export const disableUserNotificationStrings = ["no", "none", "off"];
 
@@ -999,7 +1079,9 @@ export interface UserNotificationResult {
   text?: string;
 }
 
-export function createUserNotificationError(text: string): UserNotificationResult {
+export function createUserNotificationError(
+  text: string,
+): UserNotificationResult {
   return {
     method: null,
     success: false,
@@ -1051,7 +1133,9 @@ export async function notifyUser(
     }
   }
 
-  const errorText = lastError ? `failed to message user: ${lastError.message}` : `failed to message user`;
+  const errorText = lastError
+    ? `failed to message user: ${lastError.message}`
+    : `failed to message user`;
 
   return {
     method: null,
@@ -1121,7 +1205,7 @@ export function deepKeyIntersect(obj, keyReference) {
   return result;
 }
 
-const unknownUsers = new Set();
+// const unknownUsers = new Set();
 const unknownMembers = new Set();
 
 export function resolveUserId(bot: Client, value: string) {
@@ -1146,7 +1230,10 @@ export function resolveUserId(bot: Client, value: string) {
     const profiler = getProfiler();
     const start = performance.now();
     const user = bot.users.cache.find((u) => u.tag === usernameMatch[1]);
-    profiler?.addDataPoint("utils:resolveUserId:usernameMatch", performance.now() - start);
+    profiler?.addDataPoint(
+      "utils:resolveUserId:usernameMatch",
+      performance.now() - start,
+    );
     if (user) {
       return user.id;
     }
@@ -1159,16 +1246,25 @@ export function resolveUserId(bot: Client, value: string) {
  * Finds a matching User for the passed user id, user mention, or full username (with discriminator).
  * If a user is not found, returns an UnknownUser instead.
  */
-export function getUser(client: Client, userResolvable: string): User | UnknownUser {
+export function getUser(
+  client: Client,
+  userResolvable: string,
+): User | UnknownUser {
   const id = resolveUserId(client, userResolvable);
-  return id ? client.users.resolve(id as Snowflake) || new UnknownUser({ id }) : new UnknownUser();
+  return id
+    ? client.users.resolve(id as Snowflake) || new UnknownUser({ id })
+    : new UnknownUser();
 }
 
 /**
  * Resolves a User from the passed string. The passed string can be a user id, a user mention, a full username (with discrim), etc.
  * If the user is not found in the cache, it's fetched from the API.
  */
-export async function resolveUser(bot: Client, value: unknown, context?: string): Promise<User | UnknownUser> {
+export async function resolveUser(
+  bot: Client,
+  value: unknown,
+  context?: string,
+): Promise<User | UnknownUser> {
   if (typeof value !== "string") {
     return new UnknownUser();
   }
@@ -1207,7 +1303,9 @@ export async function resolveMember(
     return null;
   }
 
-  const freshMember = await guild.members.fetch({ user: userId as Snowflake, force: true }).catch(noop);
+  const freshMember = await guild.members
+    .fetch({ user: userId as Snowflake, force: true })
+    .catch(noop);
   if (freshMember) {
     // freshMember.id = userId; // I dont even know why this is here -Dark
     return freshMember;
@@ -1225,7 +1323,11 @@ export async function resolveMember(
  *
  * FIXME: Define "first one it comes across" better
  */
-export async function resolveRoleId(bot: Client, guildId: string, value: string) {
+export async function resolveRoleId(
+  bot: Client,
+  guildId: string,
+  value: string,
+) {
   if (value == null) {
     return null;
   }
@@ -1238,7 +1340,9 @@ export async function resolveRoleId(bot: Client, guildId: string, value: string)
 
   // Role name
   const roleList = (await bot.guilds.fetch(guildId as Snowflake)).roles.cache;
-  const role = roleList.filter((x) => x.name.toLocaleLowerCase() === value.toLocaleLowerCase());
+  const role = roleList.filter(
+    (x) => x.name.toLocaleLowerCase() === value.toLocaleLowerCase(),
+  );
   if (role.size >= 1) {
     return role.firstKey();
   }
@@ -1264,7 +1368,9 @@ export class UnknownRole {
 
 export function resolveRole(guild: Guild, roleResolvable: RoleResolvable) {
   const roleId = guild.roles.resolveId(roleResolvable);
-  return guild.roles.resolve(roleId) ?? new UnknownRole({ id: roleId, name: roleId });
+  return (
+    guild.roles.resolve(roleId) ?? new UnknownRole({ id: roleId, name: roleId })
+  );
 }
 
 const inviteCache = new SimpleCache<Promise<Invite | null>>(10 * MINUTES, 200);
@@ -1287,9 +1393,13 @@ export async function resolveInvite<T extends boolean>(
   return promise as ResolveInviteReturnType;
 }
 
-const internalStickerCache: LimitedCollection<Snowflake, Sticker> = new LimitedCollection({ maxSize: 500 });
+const internalStickerCache: LimitedCollection<Snowflake, Sticker> =
+  new LimitedCollection({ maxSize: 500 });
 
-export async function resolveStickerId(bot: Client, id: Snowflake): Promise<Sticker | null> {
+export async function resolveStickerId(
+  bot: Client,
+  id: Snowflake,
+): Promise<Sticker | null> {
   const cachedSticker = internalStickerCache.get(id);
   if (cachedSticker) return cachedSticker;
 
@@ -1310,14 +1420,12 @@ export async function confirm(
 }
 
 export function createDisabledButtonRow(
-  row: ActionRowBuilder<MessageActionRowComponentBuilder>
+  row: ActionRowBuilder<MessageActionRowComponentBuilder>,
 ): ActionRowBuilder<MessageActionRowComponentBuilder> {
   const newRow = new ActionRowBuilder<MessageActionRowComponentBuilder>();
   for (const component of row.components) {
     if (component instanceof ButtonBuilder) {
-      newRow.addComponents(
-        ButtonBuilder.from(component).setDisabled(true)
-      );
+      newRow.addComponents(ButtonBuilder.from(component).setDisabled(true));
     }
   }
   return newRow;
@@ -1325,17 +1433,27 @@ export function createDisabledButtonRow(
 
 export function messageSummary(msg: SavedMessage) {
   // Regular text content
-  let result = "```\n" + (msg.data.content ? escapeCodeBlock(msg.data.content) : "<no text content>") + "```";
+  let result =
+    "```\n" +
+    (msg.data.content
+      ? escapeCodeBlock(msg.data.content)
+      : "<no text content>") +
+    "```";
 
   // Rich embed
-  const richEmbed = (msg.data.embeds || []).find((e) => (e as EmbedData).type === EmbedType.Rich);
-  if (richEmbed) result += "Embed:```" + escapeCodeBlock(JSON.stringify(richEmbed)) + "```";
+  const richEmbed = (msg.data.embeds || []).find(
+    (e) => (e as EmbedData).type === EmbedType.Rich,
+  );
+  if (richEmbed)
+    result += "Embed:```" + escapeCodeBlock(JSON.stringify(richEmbed)) + "```";
 
   // Attachments
   if (msg.data.attachments && msg.data.attachments.length) {
     result +=
       "Attachments:\n" +
-      msg.data.attachments.map((a: ISavedMessageAttachmentData) => disableLinkPreviews(a.url)).join("\n") +
+      msg.data.attachments
+        .map((a: ISavedMessageAttachmentData) => disableLinkPreviews(a.url))
+        .join("\n") +
       "\n";
   }
 
@@ -1360,15 +1478,24 @@ export function verboseUserName(user: User | UnknownUser): string {
 
 export function verboseChannelMention(channel: GuildBasedChannel): string {
   const plainTextName =
-    channel.type === ChannelType.GuildVoice || channel.type === ChannelType.GuildStageVoice
+    channel.type === ChannelType.GuildVoice ||
+    channel.type === ChannelType.GuildStageVoice
       ? channel.name
       : `#${channel.name}`;
   return `<#${channel.id}> (**${plainTextName}**, \`${channel.id}\`)`;
 }
 
 export function messageLink(message: Message): string;
-export function messageLink(guildId: string, channelId: string, messageId: string): string;
-export function messageLink(guildIdOrMessage: string | Message | null, channelId?: string, messageId?: string): string {
+export function messageLink(
+  guildId: string,
+  channelId: string,
+  messageId: string,
+): string;
+export function messageLink(
+  guildIdOrMessage: string | Message | null,
+  channelId?: string,
+  messageId?: string,
+): string {
   let guildId;
   if (guildIdOrMessage == null) {
     // Full arguments without a guild id -> DM/Group chat
@@ -1422,7 +1549,11 @@ export function memoize<T>(fn: () => T, key?, time?): T {
   return value;
 }
 
-export function lazyMemoize<T extends () => unknown>(fn: T, key?: string, time?: number): T {
+export function lazyMemoize<T extends () => unknown>(
+  fn: T,
+  key?: string,
+  time?: number,
+): T {
   return (() => {
     return memoize(fn, key, time);
   }) as T;
@@ -1496,11 +1627,16 @@ export function isGroupDMInvite(invite: Invite): invite is GroupDMInvite {
   return invite.type === InviteType.GroupDM;
 }
 
-export function inviteHasCounts(invite: Invite): invite is Invite & { memberCount: number; presenceCount: number } {
+export function inviteHasCounts(
+  invite: Invite,
+): invite is Invite & { memberCount: number; presenceCount: number } {
   return invite.memberCount != null;
 }
 
-export function asyncMap<T, R>(arr: T[], fn: (item: T) => Promise<R>): Promise<R[]> {
+export function asyncMap<T, R>(
+  arr: T[],
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
   return Promise.all(arr.map((item) => fn(item)));
 }
 
@@ -1509,17 +1645,25 @@ export function unique<T>(arr: T[]): T[] {
 }
 
 // From https://github.com/microsoft/TypeScript/pull/29955#issuecomment-470062531
-export function isTruthy<T>(value: T): value is Exclude<T, false | null | undefined | "" | 0> {
+export function isTruthy<T>(
+  value: T,
+): value is Exclude<T, false | null | undefined | "" | 0> {
   return Boolean(value);
 }
 
 export const DBDateFormat = "YYYY-MM-DD HH:mm:ss";
 
-export function renderUsername(memberOrUser: GuildMember | UnknownUser | User): string;
+export function renderUsername(
+  memberOrUser: GuildMember | UnknownUser | User,
+): string;
 export function renderUsername(username: string, discriminator: string): string;
-export function renderUsername(username: string | User | GuildMember | UnknownUser, discriminator?: string): string {
+export function renderUsername(
+  username: string | User | GuildMember | UnknownUser,
+  discriminator?: string,
+): string {
   if (username instanceof GuildMember) return username.user.tag;
-  if (username instanceof User || username instanceof UnknownUser) return username.tag;
+  if (username instanceof User || username instanceof UnknownUser)
+    return username.tag;
   if (discriminator === "0") {
     return username;
   }

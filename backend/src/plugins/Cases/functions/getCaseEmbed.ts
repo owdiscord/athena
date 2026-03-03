@@ -1,5 +1,4 @@
 import {
-  escapeCodeBlock,
   InteractionEditReplyOptions,
   InteractionReplyOptions,
   MessageCreateOptions,

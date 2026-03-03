@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { env } from "../env.js";
-import { HOURS, MINUTES, SECONDS } from "../utils.js";
+import { HOURS, MINUTES } from "../utils.js";
 
 const API_ROOT = "https://api.fishfish.gg/v1";
 
@@ -20,8 +20,8 @@ const domains = new Map<string, FishFishDomain>();
 
 let sessionTokenPromise: Promise<string> | null = null;
 
-const WS_RECONNECT_DELAY = 30 * SECONDS;
-let updatesWs: WebSocket | null = null;
+// const WS_RECONNECT_DELAY = 30 * SECONDS;
+// const updatesWs: WebSocket | null = null;
 
 export class FishFishError extends Error {}
 
@@ -50,12 +50,16 @@ async function getSessionToken(): Promise<string> {
     });
 
     if (!response.ok) {
-      throw new FishFishError(`Failed to get session token: ${response.status} ${response.statusText}`);
+      throw new FishFishError(
+        `Failed to get session token: ${response.status} ${response.statusText}`,
+      );
     }
 
     const parseResult = zTokenResponse.safeParse(await response.json());
     if (!parseResult.success) {
-      throw new FishFishError(`Parse error when fetching session token: ${parseResult.error.message}`);
+      throw new FishFishError(
+        `Parse error when fetching session token: ${parseResult.error.message}`,
+      );
     }
 
     const timeUntilExpiry = parseResult.data.expires * 1000 - Date.now();
@@ -76,19 +80,28 @@ async function getSessionToken(): Promise<string> {
   return sessionTokenPromise;
 }
 
-async function fishFishApiCall(method: string, path: string, query: Record<string, string> = {}): Promise<unknown> {
+async function fishFishApiCall(
+  method: string,
+  path: string,
+  query: Record<string, string> = {},
+): Promise<unknown> {
   const sessionToken = await getSessionToken();
   const queryParams = new URLSearchParams(query);
-  const response = await fetch(`https://api.fishfish.gg/v1/${path}?${queryParams}`, {
-    method,
-    headers: {
-      Authorization: sessionToken,
-      "Content-Type": "application/json",
+  const response = await fetch(
+    `https://api.fishfish.gg/v1/${path}?${queryParams}`,
+    {
+      method,
+      headers: {
+        Authorization: sessionToken,
+        "Content-Type": "application/json",
+      },
     },
-  });
+  );
 
   if (!response.ok) {
-    throw new FishFishError(`FishFish API call failed: ${response.status} ${response.statusText}`);
+    throw new FishFishError(
+      `FishFish API call failed: ${response.status} ${response.statusText}`,
+    );
   }
 
   return response.json();
@@ -98,7 +111,9 @@ async function refreshFishFishDomains() {
   const rawData = await fishFishApiCall("GET", "domains", { full: "true" });
   const parseResult = z.array(zDomain).safeParse(rawData);
   if (!parseResult.success) {
-    throw new FishFishError(`Parse error when refreshing domains: ${parseResult.error.message}`);
+    throw new FishFishError(
+      `Parse error when refreshing domains: ${parseResult.error.message}`,
+    );
   }
 
   domains.clear();
@@ -128,12 +143,17 @@ async function refreshFishFishDomains() {
     checked: Date.now(),
   });
 
-  console.log("[FISHFISH] Refreshed FishFish domains, total count:", domains.size);
+  console.log(
+    "[FISHFISH] Refreshed FishFish domains, total count:",
+    domains.size,
+  );
 }
 
 export async function initFishFish() {
   if (!env.FISHFISH_API_KEY) {
-    console.warn("[FISHFISH] FISHFISH_API_KEY is not set, FishFish functionality will be disabled.");
+    console.warn(
+      "[FISHFISH] FISHFISH_API_KEY is not set, FishFish functionality will be disabled.",
+    );
     return;
   }
 

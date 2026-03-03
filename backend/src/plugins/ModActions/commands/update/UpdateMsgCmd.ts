@@ -1,4 +1,4 @@
-import { waitForButtonConfirm } from "utils/waitForInteraction.js";
+import { waitForButtonConfirm } from "../../../../utils/waitForInteraction.js";
 import { commandTypeHelpers as ct } from "../../../../commandTypes.js";
 import { updateCase } from "../../functions/updateCase.js";
 import { modActionsMsgCmd } from "../../types.js";
