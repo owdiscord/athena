@@ -8,9 +8,7 @@
     "./*": "./dist/*"
   },
   "scripts": {
-    "watch": "tsc-watch --build --onSuccess \"node start-dev.js\"",
-    "watch-yaml-parse-test": "tsc-watch --build --onSuccess \"node dist/yamlParseTest.js\"",
-    "build": "tsc --build",
+    "build": "swc src -d dist",
     "typecheck": "tsc --noEmit",
     "start-bot-dev": "node --enable-source-maps --stack-trace-limit=30 --trace-warnings --inspect=0.0.0.0:9229 dist/index.js",
     "start-bot-prod": "node --enable-source-maps --stack-trace-limit=30 --trace-warnings dist/index.js",

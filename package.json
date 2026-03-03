@@ -12,6 +12,8 @@
     "start-dashboard": "cd dashboard && node serve.js"
   },
   "devDependencies": {
+    "@swc/cli": "^0.8.0",
+    "@swc/core": "^1.15.11",
     "@types/node": "^22.15.18",
     "oxc-transform": "^0.114.0",
     "oxfmt": "^0.33.0",
