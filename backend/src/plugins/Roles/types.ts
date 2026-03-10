@@ -14,6 +14,7 @@ export interface RolesPluginType extends BasePluginType {
   state: {
     logs: GuildLogs;
     common: pluginUtils.PluginPublicInterface<typeof CommonPlugin>;
+    unregisterExpiredRoleListener: () => void;
   };
 }
 
