@@ -2,10 +2,12 @@ import { Mute } from "./entities/Mute.js";
 import { Reminder } from "./entities/Reminder.js";
 import { ScheduledPost } from "./entities/ScheduledPost.js";
 import { Tempban } from "./entities/Tempban.js";
+import { TemporaryRole } from "./entities/TemporaryRole.js";
 import { VCAlert } from "./entities/VCAlert.js";
 
 interface GuildEventArgs extends Record<string, unknown[]> {
   expiredMute: [Mute];
+  expiredRole: [TemporaryRole];
   timeoutMuteToRenew: [Mute];
   scheduledPost: [ScheduledPost];
   reminder: [Reminder];
@@ -15,7 +17,9 @@ interface GuildEventArgs extends Record<string, unknown[]> {
 
 type GuildEvent = keyof GuildEventArgs;
 
-type GuildEventListener<K extends GuildEvent> = (...args: GuildEventArgs[K]) => void;
+type GuildEventListener<K extends GuildEvent> = (
+  ...args: GuildEventArgs[K]
+) => void;
 
 type ListenerMap = {
   [K in GuildEvent]?: Array<GuildEventListener<K>>;
@@ -41,11 +45,18 @@ export function onGuildEvent<K extends GuildEvent>(
   listenerMap[eventName]!.push(listener);
 
   return () => {
-    listenerMap[eventName]!.splice(listenerMap[eventName]!.indexOf(listener), 1);
+    listenerMap[eventName]!.splice(
+      listenerMap[eventName]!.indexOf(listener),
+      1,
+    );
   };
 }
 
-export function emitGuildEvent<K extends GuildEvent>(guildId: string, eventName: K, args: GuildEventArgs[K]): void {
+export function emitGuildEvent<K extends GuildEvent>(
+  guildId: string,
+  eventName: K,
+  args: GuildEventArgs[K],
+): void {
   if (!guildListeners.has(guildId)) {
     return;
   }
@@ -58,7 +69,10 @@ export function emitGuildEvent<K extends GuildEvent>(guildId: string, eventName:
   }
 }
 
-export function hasGuildEventListener<K extends GuildEvent>(guildId: string, eventName: K): boolean {
+export function hasGuildEventListener<K extends GuildEvent>(
+  guildId: string,
+  eventName: K,
+): boolean {
   if (!guildListeners.has(guildId)) {
     return false;
   }
