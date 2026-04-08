@@ -11,6 +11,7 @@
     "target": "es2020"
   },
   "module": {
-    "type": "nodenext"
+    "type": "commonjs",
+    "noInterop": false
   }
 }
