@@ -6,8 +6,14 @@ import { backendDir } from "../paths.js";
 
 moment.tz.setDefault("UTC");
 
-const entities = path.relative(process.cwd(), path.resolve(backendDir, "dist/data/entities/*.js"));
-const migrations = path.relative(process.cwd(), path.resolve(backendDir, "dist/migrations/*.js"));
+const entities = path.relative(
+  process.cwd(),
+  path.resolve(backendDir, "dist/data/entities/*.js"),
+);
+const migrations = path.relative(
+  process.cwd(),
+  path.resolve(backendDir, "dist/migrations/*.js"),
+);
 
 export const dataSource = new DataSource({
   type: "mysql",
@@ -33,7 +39,9 @@ export const dataSource = new DataSource({
     typeCast(field, next) {
       if (field.type === "DATETIME") {
         const val = field.string();
-        return val != null ? moment.utc(val).format("YYYY-MM-DD HH:mm:ss") : null;
+        return val != null
+          ? moment.utc(val).format("YYYY-MM-DD HH:mm:ss")
+          : null;
       }
 
       return next();
@@ -43,3 +51,5 @@ export const dataSource = new DataSource({
   // Migrations
   migrations: [migrations],
 });
+
+export default dataSource;
