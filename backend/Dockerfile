@@ -23,6 +23,10 @@ RUN CI=true pnpm install
 
 COPY --chown=node:node . /athena
 
+# Build shared
+WORKDIR /athena/shared
+RUN pnpm run build
+
 # Build backend
 WORKDIR /athena/backend
 RUN pnpm run build
