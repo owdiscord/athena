@@ -5,7 +5,7 @@ import {
   resolveInvite,
   zSnowflake,
 } from "../../../utils.js";
-import { getInviteCodesInString } from "utils/url.js";
+import { getInviteCodesInString } from "../../../utils/url.js";
 import { getTextMatchPartialSummary } from "../functions/getTextMatchPartialSummary.js";
 import {
   MatchableTextType,
