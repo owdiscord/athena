@@ -4,7 +4,7 @@ import {
   getRoleMentions,
   getUserMentions,
 } from "../../../utils.js";
-import { getUrlsInString } from "utils/url.js";
+import { getUrlsInString } from "../../../utils/url.js";
 import { RecentActionType } from "../constants.js";
 import { AutomodContext, AutomodPluginType } from "../types.js";
 

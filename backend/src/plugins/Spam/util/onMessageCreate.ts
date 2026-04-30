@@ -6,7 +6,7 @@ import {
   getRoleMentions,
   getUserMentions,
 } from "../../../utils.js";
-import { getUrlsInString } from "utils/url.js";
+import { getUrlsInString } from "../../../utils/url.js";
 import { RecentActionType, SpamPluginType } from "../types.js";
 import { logAndDetectMessageSpam } from "./logAndDetectMessageSpam.js";
 

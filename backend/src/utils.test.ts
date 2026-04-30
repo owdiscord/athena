@@ -5,7 +5,7 @@ import {
   convertMSToDelayString,
   zAllowedMentions,
 } from "./utils.js";
-import { getUrlsInString } from "utils/url.js";
+import { getUrlsInString } from "./utils/url.js";
 import { ErisAllowedMentionFormat } from "./utils/erisAllowedMentionsToDjsMentionOptions.js";
 
 type AssertEquals<TActual, TExpected> = TActual extends TExpected

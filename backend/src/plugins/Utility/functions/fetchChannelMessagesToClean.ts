@@ -10,7 +10,7 @@ import { SavedMessage } from "../../../data/entities/SavedMessage.js";
 import { humanizeDurationShort } from "../../../humanizeDuration.js";
 import { allowTimeout } from "../../../RegExpRunner.js";
 import { DAYS } from "../../../utils.js";
-import { getInviteCodesInString } from "utils/url.js";
+import { getInviteCodesInString } from "../../../utils/url.js";
 import { snowflakeToTimestamp } from "../../../utils/snowflakeToTimestamp.js";
 import { UtilityPluginType } from "../types.js";
 

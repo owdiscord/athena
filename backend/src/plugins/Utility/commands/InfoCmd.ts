@@ -8,7 +8,7 @@ import {
   resolveInvite,
   resolveUser,
 } from "../../../utils.js";
-import { parseInviteCodeInput } from "utils/url.js";
+import { parseInviteCodeInput } from "../../../utils/url.js";
 import { canReadChannel } from "../../../utils/canReadChannel.js";
 import { resolveMessageTarget } from "../../../utils/resolveMessageTarget.js";
 import { getChannelInfoEmbed } from "../functions/getChannelInfoEmbed.js";

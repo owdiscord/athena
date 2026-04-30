@@ -13,7 +13,7 @@ import {
   resolveInvite,
   resolveMember,
 } from "../../../utils.js";
-import { getInviteCodesInString, getUrlsInString } from "utils/url.js";
+import { getInviteCodesInString, getUrlsInString } from "../../../utils/url.js";
 import { CensorPluginType } from "../types.js";
 import { censorMessage } from "./censorMessage.js";
 

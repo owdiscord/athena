@@ -3,7 +3,7 @@ import { z } from "zod";
 import { allowTimeout } from "../../../RegExpRunner.js";
 import { getFishFishDomain } from "../../../data/FishFish.js";
 import { inputPatternToRegExp, zRegex } from "../../../utils.js";
-import { getUrlsInString } from "utils/url.js";
+import { getUrlsInString } from "../../../utils/url.js";
 import { mergeRegexes } from "../../../utils/mergeRegexes.js";
 import { mergeWordsIntoRegex } from "../../../utils/mergeWordsIntoRegex.js";
 import { getTextMatchPartialSummary } from "../functions/getTextMatchPartialSummary.js";
