@@ -62,7 +62,7 @@ export const availableTriggers: Record<
   line_spam: LineSpamTrigger,
   character_spam: CharacterSpamTrigger,
   member_join_spam: MemberJoinSpamTrigger,
-  name_number_join_spam: NameNumMemberJoinTrigger,
+  // name_number_join_spam: NameNumMemberJoinTrigger,
   sticker_spam: StickerSpamTrigger,
   thread_create_spam: ThreadCreateSpamTrigger,
 
