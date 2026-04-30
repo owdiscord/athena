@@ -22,6 +22,7 @@ import { MemberLeaveTrigger } from "./memberLeave.js";
 import { MentionSpamTrigger } from "./mentionSpam.js";
 import { MessageSpamTrigger } from "./messageSpam.js";
 import { MuteTrigger } from "./mute.js";
+import { NameNumMemberJoinTrigger } from "./namenumMemberJoin.js";
 import { NoteTrigger } from "./note.js";
 import { RoleAddedTrigger } from "./roleAdded.js";
 import { RoleRemovedTrigger } from "./roleRemoved.js";
@@ -35,7 +36,10 @@ import { UnbanTrigger } from "./unban.js";
 import { UnmuteTrigger } from "./unmute.js";
 import { WarnTrigger } from "./warn.js";
 
-export const availableTriggers: Record<string, AutomodTriggerBlueprint<any, any>> = {
+export const availableTriggers: Record<
+  string,
+  AutomodTriggerBlueprint<any, any>
+> = {
   any_message: AnyMessageTrigger,
 
   match_words: MatchWordsTrigger,
@@ -58,6 +62,7 @@ export const availableTriggers: Record<string, AutomodTriggerBlueprint<any, any>
   line_spam: LineSpamTrigger,
   character_spam: CharacterSpamTrigger,
   member_join_spam: MemberJoinSpamTrigger,
+  name_number_join_spam: NameNumMemberJoinTrigger,
   sticker_spam: StickerSpamTrigger,
   thread_create_spam: ThreadCreateSpamTrigger,
 
