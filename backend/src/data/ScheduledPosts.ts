@@ -3,7 +3,7 @@ import { Repository } from "typeorm";
 import { DBDateFormat } from "../utils.js";
 import { BaseRepository } from "./BaseRepository.js";
 import { dataSource } from "./dataSource.js";
-import type { ScheduledPost } from "./entities/ScheduledPost.js";
+import { ScheduledPost } from "./entities/ScheduledPost.js";
 
 export class ScheduledPosts extends BaseRepository {
   private scheduledPosts: Repository<ScheduledPost>;

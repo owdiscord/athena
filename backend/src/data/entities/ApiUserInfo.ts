@@ -1,10 +1,4 @@
-import {
-  Column,
-  Entity,
-  OneToMany,
-  PrimaryColumn,
-  type Relation,
-} from "typeorm";
+import { Column, Entity, OneToMany, PrimaryColumn, Relation } from "typeorm";
 import { ApiLogin } from "./ApiLogin.js";
 import { ApiPermissionAssignment } from "./ApiPermissionAssignment.js";
 

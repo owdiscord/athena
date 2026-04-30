@@ -4,7 +4,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
-  type Relation,
+  Relation,
 } from "typeorm";
 import { Case } from "./Case.js";
 

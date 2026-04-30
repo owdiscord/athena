@@ -3,7 +3,7 @@ import {
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
-  type Relation,
+  Relation,
 } from "typeorm";
 import { CaseNote } from "./CaseNote.js";
 

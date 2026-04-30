@@ -4,7 +4,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
-  type Relation,
+  Relation,
 } from "typeorm";
 import { ApiPermissionTypes } from "../ApiPermissionAssignments.js";
 import { ApiUserInfo } from "./ApiUserInfo.js";
