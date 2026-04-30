@@ -8,7 +8,7 @@
     "./*": "./dist/*"
   },
   "scripts": {
-    "build": "swc src -d dist",
+    "build": "swc src -d dist --strip-leading-paths --copy-files",
     "typecheck": "tsc --noEmit",
     "start-bot-dev": "node --enable-source-maps --stack-trace-limit=30 --trace-warnings --inspect=0.0.0.0:9229 dist/index.js",
     "start-bot-prod": "node --enable-source-maps --stack-trace-limit=30 --trace-warnings dist/index.js",
@@ -16,7 +16,7 @@
     "start-api-dev": "node --enable-source-maps --stack-trace-limit=30 --inspect=0.0.0.0:9239 dist/api/index.js",
     "start-api-prod": "node --enable-source-maps --stack-trace-limit=30 dist/api/index.js",
     "watch-api": "tsc-watch --build --onSuccess \"pnpm run start-api-dev\"",
-    "migrate": "pnpm exec typeorm migration:run -d dist/data/dataSource.js",
+    "migrate": "NODE_OPTIONS='--no-experimental-require-module' pnpm exec typeorm migration:run -d dist/data/dataSource.js",
     "migrate-prod": "pnpm run migrate",
     "migrate-dev": "pnpm run build && pnpm run migrate",
     "migrate-rollback": "pnpm exec typeorm migration:revert -d dist/data/dataSource.js",

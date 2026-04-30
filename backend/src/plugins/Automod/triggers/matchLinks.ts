@@ -2,11 +2,15 @@ import { escapeInlineCode } from "discord.js";
 import { z } from "zod";
 import { allowTimeout } from "../../../RegExpRunner.js";
 import { getFishFishDomain } from "../../../data/FishFish.js";
-import { getUrlsInString, inputPatternToRegExp, zRegex } from "../../../utils.js";
+import { inputPatternToRegExp, zRegex } from "../../../utils.js";
+import { getUrlsInString } from "utils/url.js";
 import { mergeRegexes } from "../../../utils/mergeRegexes.js";
 import { mergeWordsIntoRegex } from "../../../utils/mergeWordsIntoRegex.js";
 import { getTextMatchPartialSummary } from "../functions/getTextMatchPartialSummary.js";
-import { MatchableTextType, matchMultipleTextTypesOnMessage } from "../functions/matchMultipleTextTypesOnMessage.js";
+import {
+  MatchableTextType,
+  matchMultipleTextTypesOnMessage,
+} from "../functions/matchMultipleTextTypesOnMessage.js";
 import { automodTrigger } from "../helpers.js";
 
 interface MatchResultType {
@@ -57,7 +61,11 @@ export const MatchLinksTrigger = automodTrigger<MatchResultType>()({
       return;
     }
 
-    typeLoop: for await (const [type, str] of matchMultipleTextTypesOnMessage(pluginData, trigger, context.message)) {
+    typeLoop: for await (const [type, str] of matchMultipleTextTypesOnMessage(
+      pluginData,
+      trigger,
+      context.message,
+    )) {
       const links = getUrlsInString(str, true);
 
       for (const link of links) {
@@ -74,7 +82,9 @@ export const MatchLinksTrigger = automodTrigger<MatchResultType>()({
         if (trigger.exclude_regex) {
           if (!regexCache.has(trigger.exclude_regex)) {
             const toCache = mergeRegexes(
-              trigger.exclude_regex.map((pattern) => inputPatternToRegExp(pattern)),
+              trigger.exclude_regex.map((pattern) =>
+                inputPatternToRegExp(pattern),
+              ),
               "i",
             );
             regexCache.set(trigger.exclude_regex, toCache);
@@ -82,7 +92,9 @@ export const MatchLinksTrigger = automodTrigger<MatchResultType>()({
           const regexes = regexCache.get(trigger.exclude_regex)!;
 
           for (const sourceRegex of regexes) {
-            const matches = await pluginData.state.regexRunner.exec(sourceRegex, link.input).catch(allowTimeout);
+            const matches = await pluginData.state.regexRunner
+              .exec(sourceRegex, link.input)
+              .catch(allowTimeout);
             if (matches) {
               continue typeLoop;
             }
@@ -92,7 +104,9 @@ export const MatchLinksTrigger = automodTrigger<MatchResultType>()({
         if (trigger.include_regex) {
           if (!regexCache.has(trigger.include_regex)) {
             const toCache = mergeRegexes(
-              trigger.include_regex.map((pattern) => inputPatternToRegExp(pattern)),
+              trigger.include_regex.map((pattern) =>
+                inputPatternToRegExp(pattern),
+              ),
               "i",
             );
             regexCache.set(trigger.include_regex, toCache);
@@ -100,7 +114,9 @@ export const MatchLinksTrigger = automodTrigger<MatchResultType>()({
           const regexes = regexCache.get(trigger.include_regex)!;
 
           for (const sourceRegex of regexes) {
-            const matches = await pluginData.state.regexRunner.exec(sourceRegex, link.input).catch(allowTimeout);
+            const matches = await pluginData.state.regexRunner
+              .exec(sourceRegex, link.input)
+              .catch(allowTimeout);
             if (matches) {
               return { extra: { type, link: link.input } };
             }
@@ -141,7 +157,10 @@ export const MatchLinksTrigger = automodTrigger<MatchResultType>()({
             if (normalizedDomain === normalizedHostname) {
               continue typeLoop;
             }
-            if (trigger.include_subdomains && normalizedHostname.endsWith(`.${domain}`)) {
+            if (
+              trigger.include_subdomains &&
+              normalizedHostname.endsWith(`.${domain}`)
+            ) {
               continue typeLoop;
             }
           }
@@ -155,14 +174,19 @@ export const MatchLinksTrigger = automodTrigger<MatchResultType>()({
             if (normalizedDomain === normalizedHostname) {
               return { extra: { type, link: domain } };
             }
-            if (trigger.include_subdomains && normalizedHostname.endsWith(`.${domain}`)) {
+            if (
+              trigger.include_subdomains &&
+              normalizedHostname.endsWith(`.${domain}`)
+            ) {
               return { extra: { type, link: domain } };
             }
           }
         }
 
         const includeMalicious =
-          trigger.include_malicious || trigger.phisherman?.include_suspected || trigger.phisherman?.include_verified;
+          trigger.include_malicious ||
+          trigger.phisherman?.include_suspected ||
+          trigger.phisherman?.include_verified;
         if (includeMalicious) {
           const domainInfo = getFishFishDomain(normalizedHostname);
           if (domainInfo && domainInfo.category !== "safe") {
@@ -182,7 +206,11 @@ export const MatchLinksTrigger = automodTrigger<MatchResultType>()({
   },
 
   renderMatchInformation({ pluginData, contexts, matchResult }) {
-    const partialSummary = getTextMatchPartialSummary(pluginData, matchResult.extra.type, contexts[0]);
+    const partialSummary = getTextMatchPartialSummary(
+      pluginData,
+      matchResult.extra.type,
+      contexts[0],
+    );
     let information = `Matched link \`${escapeInlineCode(matchResult.extra.link)}\``;
     if (matchResult.extra.details) {
       information += ` ${matchResult.extra.details}`;

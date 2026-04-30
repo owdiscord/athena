@@ -2,7 +2,13 @@ import { Snowflake } from "discord.js";
 import { getChannelId, getRoleId } from "vety/helpers";
 import { commandTypeHelpers as ct } from "../../../commandTypes.js";
 import { resolveMessageMember } from "../../../pluginUtils.js";
-import { isValidSnowflake, noop, parseInviteCodeInput, resolveInvite, resolveUser } from "../../../utils.js";
+import {
+  isValidSnowflake,
+  noop,
+  resolveInvite,
+  resolveUser,
+} from "../../../utils.js";
+import { parseInviteCodeInput } from "utils/url.js";
 import { canReadChannel } from "../../../utils/canReadChannel.js";
 import { resolveMessageTarget } from "../../../utils/resolveMessageTarget.js";
 import { getChannelInfoEmbed } from "../functions/getChannelInfoEmbed.js";
@@ -40,7 +46,9 @@ export const InfoCmd = utilityCmd({
     // 1. Channel
     if (userCfg.can_channelinfo) {
       const channelId = getChannelId(value);
-      const channel = channelId && pluginData.guild.channels.cache.get(channelId as Snowflake);
+      const channel =
+        channelId &&
+        pluginData.guild.channels.cache.get(channelId as Snowflake);
       if (channel) {
         const embed = await getChannelInfoEmbed(pluginData, channelId!);
         if (embed) {
@@ -52,7 +60,9 @@ export const InfoCmd = utilityCmd({
 
     // 2. Server
     if (userCfg.can_server) {
-      const guild = await pluginData.client.guilds.fetch(value as Snowflake).catch(noop);
+      const guild = await pluginData.client.guilds
+        .fetch(value as Snowflake)
+        .catch(noop);
       if (guild) {
         const embed = await getServerInfoEmbed(pluginData, value);
         if (embed) {
@@ -64,9 +74,17 @@ export const InfoCmd = utilityCmd({
 
     // 3. User
     if (userCfg.can_userinfo) {
-      const user = await resolveUser(pluginData.client, value, "Utility:InfoCmd");
+      const user = await resolveUser(
+        pluginData.client,
+        value,
+        "Utility:InfoCmd",
+      );
       if (user && userCfg.can_userinfo) {
-        const embed = await getUserInfoEmbed(pluginData, user.id, Boolean(args.compact));
+        const embed = await getUserInfoEmbed(
+          pluginData,
+          user.id,
+          Boolean(args.compact),
+        );
         if (embed) {
           message.channel.send({ embeds: [embed] });
           return;
@@ -80,7 +98,11 @@ export const InfoCmd = utilityCmd({
       if (messageTarget) {
         const authorMember = await resolveMessageMember(message);
         if (canReadChannel(messageTarget.channel, authorMember)) {
-          const embed = await getMessageInfoEmbed(pluginData, messageTarget.channel.id, messageTarget.messageId);
+          const embed = await getMessageInfoEmbed(
+            pluginData,
+            messageTarget.channel.id,
+            messageTarget.messageId,
+          );
           if (embed) {
             message.channel.send({ embeds: [embed] });
             return;
@@ -106,7 +128,10 @@ export const InfoCmd = utilityCmd({
 
     // 6. Server again (fallback for discovery servers)
     if (userCfg.can_server) {
-      const serverPreview = await getGuildPreview(pluginData.client, value).catch(() => null);
+      const serverPreview = await getGuildPreview(
+        pluginData.client,
+        value,
+      ).catch(() => null);
       if (serverPreview) {
         const embed = await getServerInfoEmbed(pluginData, value);
         if (embed) {
@@ -119,7 +144,8 @@ export const InfoCmd = utilityCmd({
     // 7. Role
     if (userCfg.can_roleinfo) {
       const roleId = getRoleId(value);
-      const role = roleId && pluginData.guild.roles.cache.get(roleId as Snowflake);
+      const role =
+        roleId && pluginData.guild.roles.cache.get(roleId as Snowflake);
       if (role) {
         const embed = await getRoleInfoEmbed(pluginData, role);
         message.channel.send({ embeds: [embed] });

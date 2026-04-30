@@ -1,4 +1,11 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn, Relation } from "typeorm";
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+  type Relation,
+} from "typeorm";
 import { ApiUserInfo } from "./ApiUserInfo.js";
 
 @Entity("api_logins")
@@ -19,7 +26,10 @@ export class ApiLogin {
   @Column()
   expires_at: string;
 
-  @ManyToOne(() => ApiUserInfo, (userInfo) => userInfo.logins)
+  @ManyToOne(
+    () => ApiUserInfo,
+    (userInfo) => userInfo.logins,
+  )
   @JoinColumn({ name: "user_id" })
   userInfo: Relation<ApiUserInfo>;
 }

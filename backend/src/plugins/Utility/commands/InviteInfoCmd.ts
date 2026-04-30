@@ -1,5 +1,5 @@
 import { commandTypeHelpers as ct } from "../../../commandTypes.js";
-import { parseInviteCodeInput } from "../../../utils.js";
+import { parseInviteCodeInput } from "utils/url.js";
 import { getInviteInfoEmbed } from "../functions/getInviteInfoEmbed.js";
 import { utilityCmd } from "../types.js";
 

@@ -1,9 +1,17 @@
 import { GuildPluginData } from "vety";
-import { getEmojiInString, getRoleMentions, getUrlsInString, getUserMentions } from "../../../utils.js";
+import {
+  getEmojiInString,
+  getRoleMentions,
+  getUserMentions,
+} from "../../../utils.js";
+import { getUrlsInString } from "utils/url.js";
 import { RecentActionType } from "../constants.js";
 import { AutomodContext, AutomodPluginType } from "../types.js";
 
-export function addRecentActionsFromMessage(pluginData: GuildPluginData<AutomodPluginType>, context: AutomodContext) {
+export function addRecentActionsFromMessage(
+  pluginData: GuildPluginData<AutomodPluginType>,
+  context: AutomodContext,
+) {
   const message = context.message!;
   const globalIdentifier = message.user_id;
   const perChannelIdentifier = `${message.channel_id}-${message.user_id}`;
@@ -23,7 +31,8 @@ export function addRecentActionsFromMessage(pluginData: GuildPluginData<AutomodP
   });
 
   const mentionCount =
-    getUserMentions(message.data.content || "").length + getRoleMentions(message.data.content || "").length;
+    getUserMentions(message.data.content || "").length +
+    getRoleMentions(message.data.content || "").length;
   if (mentionCount) {
     pluginData.state.recentActions.push({
       context,
@@ -57,7 +66,8 @@ export function addRecentActionsFromMessage(pluginData: GuildPluginData<AutomodP
     });
   }
 
-  const attachmentCount = message.data.attachments && message.data.attachments.length;
+  const attachmentCount =
+    message.data.attachments && message.data.attachments.length;
   if (attachmentCount) {
     pluginData.state.recentActions.push({
       context,
@@ -92,7 +102,9 @@ export function addRecentActionsFromMessage(pluginData: GuildPluginData<AutomodP
   }
 
   // + 1 is for the first line of the message (which doesn't have a line break)
-  const lineCount = message.data.content ? (message.data.content.match(/\n/g) || []).length + 1 : 0;
+  const lineCount = message.data.content
+    ? (message.data.content.match(/\n/g) || []).length + 1
+    : 0;
   if (lineCount) {
     pluginData.state.recentActions.push({
       context,

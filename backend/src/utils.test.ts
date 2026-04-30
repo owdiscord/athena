@@ -1,9 +1,16 @@
 import test from "ava";
 import { z } from "zod";
-import { convertDelayStringToMS, convertMSToDelayString, getUrlsInString, zAllowedMentions } from "./utils.js";
+import {
+  convertDelayStringToMS,
+  convertMSToDelayString,
+  zAllowedMentions,
+} from "./utils.js";
+import { getUrlsInString } from "utils/url.js";
 import { ErisAllowedMentionFormat } from "./utils/erisAllowedMentionsToDjsMentionOptions.js";
 
-type AssertEquals<TActual, TExpected> = TActual extends TExpected ? true : false;
+type AssertEquals<TActual, TExpected> = TActual extends TExpected
+  ? true
+  : false;
 
 test("getUrlsInString(): detects full links", (t) => {
   const urls = getUrlsInString("foo https://google.com/ bar");
@@ -52,6 +59,7 @@ test("delay strings: reverse conversion (conservative)", (t) => {
 test("tAllowedMentions matches Eris's AllowedMentions", (t) => {
   type TAllowedMentions = z.infer<typeof zAllowedMentions>;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const typeTest: AssertEquals<TAllowedMentions, ErisAllowedMentionFormat> = true;
+  const typeTest: AssertEquals<TAllowedMentions, ErisAllowedMentionFormat> =
+    true;
   t.pass();
 });

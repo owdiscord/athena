@@ -1,4 +1,10 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Relation } from "typeorm";
+import {
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  type Relation,
+} from "typeorm";
 import { CaseNote } from "./CaseNote.js";
 
 @Entity("cases")
@@ -35,6 +41,9 @@ export class Case {
    */
   @Column({ type: String, nullable: true }) log_message_id: string | null;
 
-  @OneToMany(() => CaseNote, (note) => note.case)
+  @OneToMany(
+    () => CaseNote,
+    (note) => note.case,
+  )
   notes: Relation<CaseNote[]>;
 }

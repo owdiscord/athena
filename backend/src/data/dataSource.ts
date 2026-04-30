@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import moment from "moment-timezone";
 import path from "path";
 import { DataSource } from "typeorm";
@@ -51,5 +52,3 @@ export const dataSource = new DataSource({
   // Migrations
   migrations: [migrations],
 });
-
-export default dataSource;

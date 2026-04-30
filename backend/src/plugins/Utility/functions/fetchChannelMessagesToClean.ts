@@ -1,9 +1,16 @@
-import { GuildBasedChannel, Message, OmitPartialGroupDMChannel, Snowflake, TextBasedChannel } from "discord.js";
+import {
+  GuildBasedChannel,
+  Message,
+  OmitPartialGroupDMChannel,
+  Snowflake,
+  TextBasedChannel,
+} from "discord.js";
 import { GuildPluginData } from "vety";
 import { SavedMessage } from "../../../data/entities/SavedMessage.js";
 import { humanizeDurationShort } from "../../../humanizeDuration.js";
 import { allowTimeout } from "../../../RegExpRunner.js";
-import { DAYS, getInviteCodesInString } from "../../../utils.js";
+import { DAYS } from "../../../utils.js";
+import { getInviteCodesInString } from "utils/url.js";
 import { snowflakeToTimestamp } from "../../../utils/snowflakeToTimestamp.js";
 import { UtilityPluginType } from "../types.js";
 
@@ -55,7 +62,8 @@ export async function fetchChannelMessagesToClean(
     pinIds = new Set((await targetChannel.messages.fetchPinned()).keys());
   }
 
-  const rawMessagesToClean: Array<OmitPartialGroupDMChannel<Message<true>>> = [];
+  const rawMessagesToClean: Array<OmitPartialGroupDMChannel<Message<true>>> =
+    [];
   let beforeId = opts.beforeId;
   let requests = 0;
   while (rawMessagesToClean.length < opts.count) {
@@ -73,7 +81,11 @@ export async function fetchChannelMessagesToClean(
       if (opts.authorId && message.author.id !== opts.authorId) continue;
       if (opts.onlyBotMessages && !message.author.bot) continue;
       if (pinIds.has(message.id)) continue;
-      if (opts.onlyWithInvites && getInviteCodesInString(contentString).length === 0) continue;
+      if (
+        opts.onlyWithInvites &&
+        getInviteCodesInString(contentString).length === 0
+      )
+        continue;
       if (opts.upToId && message.id < opts.upToId) {
         foundId = true;
         break;
@@ -81,7 +93,9 @@ export async function fetchChannelMessagesToClean(
       if (message.createdTimestamp < timestampCutoff) continue;
       if (
         opts.matchContent &&
-        !(await pluginData.state.regexRunner.exec(opts.matchContent, contentString).catch(allowTimeout))
+        !(await pluginData.state.regexRunner
+          .exec(opts.matchContent, contentString)
+          .catch(allowTimeout))
       ) {
         continue;
       }
@@ -113,12 +127,18 @@ export async function fetchChannelMessagesToClean(
 
   // Discord messages -> SavedMessages
   if (rawMessagesToClean.length > 0) {
-    const existingStored = await pluginData.state.savedMessages.getMultiple(rawMessagesToClean.map((m) => m.id));
+    const existingStored = await pluginData.state.savedMessages.getMultiple(
+      rawMessagesToClean.map((m) => m.id),
+    );
     const alreadyStored = existingStored.map((stored) => stored.id);
-    const messagesToStore = rawMessagesToClean.filter((potentialMsg) => !alreadyStored.includes(potentialMsg.id));
+    const messagesToStore = rawMessagesToClean.filter(
+      (potentialMsg) => !alreadyStored.includes(potentialMsg.id),
+    );
     await pluginData.state.savedMessages.createFromMessages(messagesToStore);
 
-    result.messages = await pluginData.state.savedMessages.getMultiple(rawMessagesToClean.map((m) => m.id));
+    result.messages = await pluginData.state.savedMessages.getMultiple(
+      rawMessagesToClean.map((m) => m.id),
+    );
   }
 
   return result;

@@ -2,7 +2,12 @@ import { Awaitable } from "./typeUtils.js";
 
 export async function asyncReduce<T, V>(
   arr: T[],
-  callback: (accumulator: V, currentValue: T, index: number, array: T[]) => Awaitable<V>,
+  callback: (
+    accumulator: V,
+    currentValue: T,
+    index: number,
+    array: T[],
+  ) => Awaitable<V>,
   initialValue?: V,
 ): Promise<V> {
   let accumulator;

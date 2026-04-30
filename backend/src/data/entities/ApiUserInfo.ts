@@ -1,4 +1,10 @@
-import { Column, Entity, OneToMany, PrimaryColumn, Relation } from "typeorm";
+import {
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryColumn,
+  type Relation,
+} from "typeorm";
 import { ApiLogin } from "./ApiLogin.js";
 import { ApiPermissionAssignment } from "./ApiPermissionAssignment.js";
 
@@ -20,9 +26,15 @@ export class ApiUserInfo {
   @Column()
   updated_at: string;
 
-  @OneToMany(() => ApiLogin, (login) => login.userInfo)
+  @OneToMany(
+    () => ApiLogin,
+    (login) => login.userInfo,
+  )
   logins: Relation<ApiLogin[]>;
 
-  @OneToMany(() => ApiPermissionAssignment, (p) => p.userInfo)
+  @OneToMany(
+    () => ApiPermissionAssignment,
+    (p) => p.userInfo,
+  )
   permissionAssignments: Relation<ApiPermissionAssignment[]>;
 }

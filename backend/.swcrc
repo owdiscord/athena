@@ -2,16 +2,18 @@
   "jsc": {
     "parser": {
       "syntax": "typescript",
-      "decorators": true
+      "decorators": true,
+      "dynamicImport": true
     },
     "transform": {
       "legacyDecorator": true,
       "decoratorMetadata": true
     },
-    "target": "es2020"
+    "target": "es2021",
+    "paths": {}
   },
   "module": {
-    "type": "commonjs",
-    "noInterop": false
-  }
+    "type": "es6"
+  },
+  "sourceMaps": true
 }
