@@ -108,6 +108,12 @@ func (h *Handler) SaveConfig(c *echo.Context) error {
 
 	config := strings.TrimSpace(*body.Config) + "\n"
 
+	// Parse and validate the YAML string
+	var temp any
+	if err := yaml.Unmarshal([]byte(*body.Config), &temp); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]any{"errors": []string{"the provided yaml string is invalid: " + err.Error()}})
+	}
+
 	current, err := h.db.GetActiveConfig(c.Request().Context(), "guild-"+guildID)
 	if err == nil && current != nil && config == current.Config {
 		return c.JSON(http.StatusOK, map[string]any{"result": "ok"})
