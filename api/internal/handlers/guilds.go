@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"slices"
 	"strings"
 	"time"
 
@@ -193,7 +192,7 @@ func (h *Handler) SetTargetPermissions(c *echo.Context) error {
 	}
 
 	validPerms := make(map[permissions.APIPermission]bool)
-	for _, p := range permissions.All {
+	for _, p := range permissions.Hierarchy {
 		if p != permissions.Owner {
 			validPerms[p] = true
 		}
@@ -208,7 +207,7 @@ func (h *Handler) SetTargetPermissions(c *echo.Context) error {
 	defer h.mu.Unlock()
 
 	existing, _ := h.db.GetPermissionsByGuildAndUserID(c.Request().Context(), guildID, body.TargetID)
-	if existing != nil && containsPermission(existing.Permissions, permissions.Owner) {
+	if existing != nil && permissions.IsPermitted(existing.Permissions, permissions.Owner) {
 		return echo.NewHTTPError(http.StatusBadRequest, "can't change owner permissions")
 	}
 
@@ -243,11 +242,8 @@ func (h *Handler) hasPermission(c *echo.Context, userID, guildID string, perm pe
 	if err != nil || assignment == nil {
 		return false
 	}
-	return containsPermission(assignment.Permissions, perm) || containsPermission(assignment.Permissions, permissions.Owner)
-}
 
-func containsPermission(perms []permissions.APIPermission, target permissions.APIPermission) bool {
-	return slices.Contains(perms, target)
+	return permissions.IsPermitted(assignment.Permissions, perm)
 }
 
 func isSnowflake(s string) bool {
