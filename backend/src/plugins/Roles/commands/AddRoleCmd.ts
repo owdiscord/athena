@@ -14,16 +14,24 @@ export const AddRoleCmd = rolesCmd({
   signature: {
     member: ct.resolvedMember(),
     role: ct.string({ catchAll: true }),
+    time: ct.delay({ required: false }),
   },
 
   async run({ message: msg, args, pluginData }) {
     const member = await resolveMessageMember(msg);
     if (!canActOn(pluginData, member, args.member, true)) {
-      void pluginData.state.common.sendErrorMessage(msg, "Cannot add roles to this user: insufficient permissions");
+      void pluginData.state.common.sendErrorMessage(
+        msg,
+        "Cannot add roles to this user: insufficient permissions",
+      );
       return;
     }
 
-    const roleId = await resolveRoleId(pluginData.client, pluginData.guild.id, args.role);
+    const roleId = await resolveRoleId(
+      pluginData.client,
+      pluginData.guild.id,
+      args.role,
+    );
     if (!roleId) {
       void pluginData.state.common.sendErrorMessage(msg, "Invalid role id");
       return;
@@ -31,7 +39,10 @@ export const AddRoleCmd = rolesCmd({
 
     const config = await pluginData.config.getForMessage(msg);
     if (!config.assignable_roles.includes(roleId)) {
-      void pluginData.state.common.sendErrorMessage(msg, "You cannot assign that role");
+      void pluginData.state.common.sendErrorMessage(
+        msg,
+        "You cannot assign that role",
+      );
       return;
     }
 
@@ -41,13 +52,23 @@ export const AddRoleCmd = rolesCmd({
       pluginData.getPlugin(LogsPlugin).logBotAlert({
         body: `Unknown role configured for 'roles' plugin: ${roleId}`,
       });
-      void pluginData.state.common.sendErrorMessage(msg, "You cannot assign that role");
+      void pluginData.state.common.sendErrorMessage(
+        msg,
+        "You cannot assign that role",
+      );
       return;
     }
 
     if (args.member.roles.cache.has(roleId)) {
-      void pluginData.state.common.sendErrorMessage(msg, "Member already has that role");
+      void pluginData.state.common.sendErrorMessage(
+        msg,
+        "Member already has that role",
+      );
       return;
+    }
+
+    if (args.time) {
+      pluginData.guild.scheduledEvents.create({});
     }
 
     pluginData.getPlugin(RoleManagerPlugin).addRole(args.member.id, roleId);
