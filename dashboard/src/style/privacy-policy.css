@@ -4,9 +4,7 @@
   width: 100%;
   min-height: 100vh;
 
-  background-color: #7289da;
-  background-image: linear-gradient(225deg, #7289da 0%, #5d70b4 100%);
-  color: #fff;
+  color: #dedee7;
 
   display: flex;
   flex-direction: column;
@@ -14,7 +12,7 @@
   align-items: center;
 
   & a {
-    color: #fff;
+    color: #f06414;
     text-decoration: underline;
   }
 
@@ -27,11 +25,12 @@
 
   & h1 {
     font-size: 60px;
-    font-weight: 300;
+    color: #fff;
   }
 
   & h2 {
     font-size: 30px;
+    color: #fff;
     margin-top: 16px;
   }
 

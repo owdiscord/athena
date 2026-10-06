@@ -1,32 +1,33 @@
 <template>
   <div class="privacy-policy">
     <div class="wrapper">
-      <h1>Zeppelin Privacy Policy</h1>
+      <h1>Athena Privacy Policy</h1>
 
-      <h2>Zeppelin overview</h2>
+      <h2>Athena overview</h2>
       <p>
-        Zeppelin is a moderation bot for Discord that allows server staff to
+        Athena is a moderation bot for Discord that allows server staff to
         carry out moderator actions (warn, mute, kick, ban, clean messages, view
         user information, etc.),
         keep records of infractions, perform automated actions ("automod", e.g.
         message filtering), post detailed logs on logging channels, and set up
         systems such as reaction roles.
         The bot also includes a web dashboard that server administrators can log
-        in to through Discord OAuth.
+        in to through Discord OAuth. It is a fork of the popular <a
+          href="https://github.com/ZeppelinBot/Zeppelin">Zeppelin</a> Discord bot, created by Dragory.
       </p>
       <p>
         The bot's source code is available at
-        <a href="https://github.com/ZeppelinBot/Zeppelin">
-          https://github.com/ZeppelinBot/Zeppelin
+        <a href="https://github.com/owdiscord/Athena">
+          https://github.com/owdiscord/Athena
         </a>
       </p>
 
       <h2>Stored data</h2>
       <p>
-        When Zeppelin is used by a server, the following categories data can be
+        When Athena is used by a server, the following categories data can be
         stored by the bot.
         The specific categories of data saved for each server depends on how the
-        server has configured Zeppelin.
+        server has configured Athena.
       </p>
       <ul>
         <li>Recent messages and username/nickname changes of users engaged on
@@ -66,27 +67,28 @@
           engaged in chat or voice channels are stored for 30 days
         </li>
         <li>Archives of bulk-deleted messages are stored for 30 days</li>
-        <li>Infraction record data is kept until the server stops using Zeppelin
+        <li>Infraction record data is kept until the server stops using Athena
           unless explicitly deleted
         </li>
         <li>Roles and nicknames that are restored on rejoin are cleared when the
           user rejoins
         </li>
         <li>User information for users logged in to the bot's web dashboard via
-          Discord OAuth is stored as long as the server uses Zeppelin
+          Discord OAuth is stored as long as the server uses Athena
         </li>
       </ul>
 
       <h2>Data access and deletion requests</h2>
       <p>
         To request access to personal data stored about you, or to request its
-        deletion, to the extent permitted by GDPR, please send an email to <a
-        href="mailto:contact@mivir.fi">contact@mivir.fi</a>.
+        deletion, to the extent permitted by GDPR, please contact our ModMail bot via Discord, or send an email to <a
+          href="mailto:isaac@grphcrtv.com">isaac@grphcrtv.com</a>.
       </p>
-    </div></div>
+    </div>
+  </div>
 </template>
 
 <script type="ts">
-  import "../style/privacy-policy.css";
-  export default {};
+import "../style/privacy-policy.css";
+export default {};
 </script>
