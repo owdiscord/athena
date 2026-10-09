@@ -23,15 +23,25 @@ function getLogsPlugin(): Promise<any> {
 export const CasesPlugin = guildPlugin<CasesPluginType>()({
   name: "cases",
 
-  dependencies: async () => [TimeAndDatePlugin, InternalPosterPlugin, (await getLogsPlugin()).LogsPlugin],
+  dependencies: async () => [
+    TimeAndDatePlugin,
+    InternalPosterPlugin,
+    (await getLogsPlugin()).LogsPlugin,
+  ],
   configSchema: zCasesConfig,
 
   public(pluginData) {
     return {
       createCase: makePublicFn(pluginData, createCase),
       createCaseNote: makePublicFn(pluginData, createCaseNote),
-      postCaseToCaseLogChannel: makePublicFn(pluginData, postCaseToCaseLogChannel),
-      getCaseTypeAmountForUserId: makePublicFn(pluginData, getCaseTypeAmountForUserId),
+      postCaseToCaseLogChannel: makePublicFn(
+        pluginData,
+        postCaseToCaseLogChannel,
+      ),
+      getCaseTypeAmountForUserId: makePublicFn(
+        pluginData,
+        getCaseTypeAmountForUserId,
+      ),
       getTotalCasesByMod: makePublicFn(pluginData, getTotalCasesByMod),
       getRecentCasesByMod: makePublicFn(pluginData, getRecentCasesByMod),
       getCaseEmbed: makePublicFn(pluginData, getCaseEmbed),
