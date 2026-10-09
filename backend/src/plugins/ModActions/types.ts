@@ -29,16 +29,24 @@ export const zModActionsConfig = z.strictObject({
   message_on_kick: z.boolean().default(false),
   message_on_ban: z.boolean().default(false),
   message_channel: z.nullable(z.string()).default(null),
-  warn_message: z.nullable(z.string()).default("You have received a warning on the {guildName} server: {reason}"),
+  warn_message: z
+    .nullable(z.string())
+    .default("You have received a warning on the {guildName} server: {reason}"),
   kick_message: z
     .nullable(z.string())
-    .default("You have been kicked from the {guildName} server. Reason given: {reason}"),
+    .default(
+      "You have been kicked from the {guildName} server. Reason given: {reason}",
+    ),
   ban_message: z
     .nullable(z.string())
-    .default("You have been banned from the {guildName} server. Reason given: {reason}"),
+    .default(
+      "You have been banned from the {guildName} server. Reason given: {reason}",
+    ),
   tempban_message: z
     .nullable(z.string())
-    .default("You have been banned from the {guildName} server for {banTime}. Reason given: {reason}"),
+    .default(
+      "You have been banned from the {guildName} server for {banTime}. Reason given: {reason}",
+    ),
   alert_on_rejoin: z.boolean().default(false),
   alert_channel: z.nullable(z.string()).default(null),
   warn_notify_enabled: z.boolean().default(false),
@@ -50,7 +58,9 @@ export const zModActionsConfig = z.strictObject({
     ),
   ban_delete_message_days: z.number().default(1),
   attachment_link_reaction: z
-    .nullable(z.union([z.literal("none"), z.literal("warn"), z.literal("restrict")]))
+    .nullable(
+      z.union([z.literal("none"), z.literal("warn"), z.literal("restrict")]),
+    )
     .default("warn"),
   can_note: z.boolean().default(false),
   can_warn: z.boolean().default(false),
@@ -60,6 +70,7 @@ export const zModActionsConfig = z.strictObject({
   can_unban: z.boolean().default(false),
   can_view: z.boolean().default(false),
   can_addcase: z.boolean().default(false),
+  can_hidecase_own: z.boolean().default(false),
   can_massunban: z.boolean().default(false),
   can_massban: z.boolean().default(false),
   can_massmute: z.boolean().default(false),
@@ -79,8 +90,14 @@ export interface ModActionsEvents {
 }
 
 export interface ModActionsEventEmitter extends EventEmitter {
-  on<U extends keyof ModActionsEvents>(event: U, listener: ModActionsEvents[U]): this;
-  emit<U extends keyof ModActionsEvents>(event: U, ...args: Parameters<ModActionsEvents[U]>): boolean;
+  on<U extends keyof ModActionsEvents>(
+    event: U,
+    listener: ModActionsEvents[U],
+  ): this;
+  emit<U extends keyof ModActionsEvents>(
+    event: U,
+    ...args: Parameters<ModActionsEvents[U]>
+  ): boolean;
 }
 
 export interface ModActionsPluginType extends BasePluginType {
@@ -169,9 +186,19 @@ export interface BanOptions {
   isAutomodAction?: boolean;
 }
 
-export type ModActionType = "note" | "warn" | "mute" | "unmute" | "kick" | "ban" | "unban";
+export type ModActionType =
+  | "note"
+  | "warn"
+  | "mute"
+  | "unmute"
+  | "kick"
+  | "ban"
+  | "unban";
 
-export const modActionsMsgCmd = guildPluginMessageCommand<ModActionsPluginType>();
-export const modActionsSlashGroup = guildPluginSlashGroup<ModActionsPluginType>();
-export const modActionsSlashCmd = guildPluginSlashCommand<ModActionsPluginType>();
+export const modActionsMsgCmd =
+  guildPluginMessageCommand<ModActionsPluginType>();
+export const modActionsSlashGroup =
+  guildPluginSlashGroup<ModActionsPluginType>();
+export const modActionsSlashCmd =
+  guildPluginSlashCommand<ModActionsPluginType>();
 export const modActionsEvt = guildPluginEventListener<ModActionsPluginType>();
