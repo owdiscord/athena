@@ -20,7 +20,7 @@
     "oxlint": "^1.48.0",
     "ts-toolbelt": "^9.6.0",
     "tsc-watch": "^6.0.4",
-    "typescript": "=5.9.3"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "dotenv": "^16.5.0"

@@ -3,7 +3,7 @@
   "compilerOptions": {
     "moduleResolution": "NodeNext",
     "module": "NodeNext",
-    "baseUrl": "./src",
+    "paths": { "*": ["./src/*"] },
     "rootDir": "./src",
     "outDir": "./dist",
     
