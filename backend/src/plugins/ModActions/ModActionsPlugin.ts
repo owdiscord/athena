@@ -72,7 +72,11 @@ import { offModActionsEvent } from "./functions/offModActionsEvent.js";
 import { onModActionsEvent } from "./functions/onModActionsEvent.js";
 import { updateCase } from "./functions/updateCase.js";
 import { warnMember } from "./functions/warnMember.js";
-import { ModActionsPluginType, modActionsSlashGroup, zModActionsConfig } from "./types.js";
+import {
+  ModActionsPluginType,
+  modActionsSlashGroup,
+  zModActionsConfig,
+} from "./types.js";
 
 export const ModActionsPlugin = guildPlugin<ModActionsPluginType>()({
   name: "mod_actions",
@@ -91,6 +95,7 @@ export const ModActionsPlugin = guildPlugin<ModActionsPluginType>()({
         can_unban: true,
         can_view: true,
         can_addcase: true,
+        can_hidecase_own: true,
       },
     },
     {
@@ -105,7 +110,12 @@ export const ModActionsPlugin = guildPlugin<ModActionsPluginType>()({
     },
   ],
 
-  events: [CreateBanCaseOnManualBanEvt, CreateUnbanCaseOnManualUnbanEvt, PostAlertOnMemberJoinEvt, AuditLogEvents],
+  events: [
+    CreateBanCaseOnManualBanEvt,
+    CreateUnbanCaseOnManualUnbanEvt,
+    PostAlertOnMemberJoinEvt,
+    AuditLogEvents,
+  ],
 
   slashCommands: [
     modActionsSlashGroup({
@@ -167,7 +177,9 @@ export const ModActionsPlugin = guildPlugin<ModActionsPluginType>()({
       kickMember: makePublicFn(pluginData, kickMember),
       banUserId: makePublicFn(pluginData, banUserId),
       updateCase: (msg: Message, caseNumber: number | null, note: string) =>
-        updateCase(pluginData, msg, msg.author, caseNumber ?? undefined, note, [...msg.attachments.values()]),
+        updateCase(pluginData, msg, msg.author, caseNumber ?? undefined, note, [
+          ...msg.attachments.values(),
+        ]),
       hasNotePermission: makePublicFn(pluginData, hasNotePermission),
       hasWarnPermission: makePublicFn(pluginData, hasWarnPermission),
       hasMutePermission: makePublicFn(pluginData, hasMutePermission),
@@ -202,8 +214,10 @@ export const ModActionsPlugin = guildPlugin<ModActionsPluginType>()({
   afterLoad(pluginData) {
     const { state, guild } = pluginData;
 
-    state.unregisterGuildEventListener = onGuildEvent(guild.id, "expiredTempban", (tempban) =>
-      clearTempban(pluginData, tempban),
+    state.unregisterGuildEventListener = onGuildEvent(
+      guild.id,
+      "expiredTempban",
+      (tempban) => clearTempban(pluginData, tempban),
     );
   },
 

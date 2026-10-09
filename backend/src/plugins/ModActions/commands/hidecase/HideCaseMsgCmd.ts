@@ -4,8 +4,9 @@ import { actualHideCaseCmd } from "./actualHideCaseCmd.js";
 
 export const HideCaseMsgCmd = modActionsMsgCmd({
   trigger: ["hide", "hidecase", "hide_case"],
-  permission: "can_hidecase",
-  description: "Hide the specified case so it doesn't appear in !cases or !info",
+  permission: "can_hidecase_own",
+  description:
+    "Hide the specified case so it doesn't appear in !cases or !info",
 
   signature: [
     {
