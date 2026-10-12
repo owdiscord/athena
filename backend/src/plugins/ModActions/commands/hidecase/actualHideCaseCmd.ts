@@ -25,15 +25,6 @@ export async function actualHideCaseCmd(
       theCase.mod_id ===
       (context instanceof Message ? context.author.id : context.user.id);
 
-    console.log("testing case deletion", {
-      num,
-      isOwnCase,
-      can_hidecase: config.can_hidecase,
-      mod_id: theCase.mod_id,
-      sender_id:
-        context instanceof Message ? context.author.id : context.user.id,
-    });
-
     // Set the case to hidden if it is a self-created case, otherwise push to failures.
     if (isOwnCase || config.can_hidecase) {
       await pluginData.state.cases.setHidden(theCase.id, true);
