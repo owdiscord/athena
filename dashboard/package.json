@@ -10,10 +10,10 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.1.8",
-    "@vitejs/plugin-vue": "^5.2.4",
-    "@vue/tsconfig": "^0.7.0",
     "@athena/shared": "workspace:*",
+    "@tailwindcss/vite": "^4.1.8",
+    "@vitejs/plugin-vue": "^6.0.9",
+    "@vue/tsconfig": "^0.9.1",
     "cross-env": "^7.0.3",
     "highlight.js": "^11.8.0",
     "humanize-duration": "^3.27.0",
