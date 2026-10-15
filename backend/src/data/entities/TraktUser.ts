@@ -6,11 +6,11 @@ export class TraktUser {
   @PrimaryColumn()
   snowflake: number;
 
-  @Column() message_score: number;
+  @Column({ default: 1 }) message_score: number;
 
-  @Column() time_score: number;
+  @Column({ default: 0 }) time_score: number;
 
-  @Column() has_regular: boolean;
+  @Column({ default: false }) has_regular: boolean;
 
-  @Column() sanction_time: number;
+  @Column({ default: 0 }) sanction_time: number;
 }
