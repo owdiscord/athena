@@ -11,6 +11,30 @@ export class GuildTrakt extends BaseGuildRepository {
     this.trakt = dataSource.getRepository(TraktUser);
   }
 
+  async find(snowflake: number): Promise<TraktUser | null> {
+    return this.trakt.findOneBy({snowflake: snowflake})
+  }
+
+  async delete(snowflake: number) {
+    this.trakt.delete({ snowflake: snowflake })
+  }
+
+  async overrideTime(snowflake: number, timeScore: number): Promise<boolean> {
+    const user = await this.trakt.findOneBy({ snowflake: snowflake })
+    if (!user) return false
+    user.time_score = timeScore
+    await this.trakt.save(user)
+    return true
+  }
+
+  async overrideMessage(snowflake: number, messageScore: number): Promise<boolean> {
+    const user = await this.trakt.findOneBy({ snowflake: snowflake })
+    if (!user) return false
+    user.message_score = messageScore
+    await this.trakt.save(user)
+    return true
+  }
+
   async mutateIfExists(snowflake: number, action: (user: TraktUser) => void) {
     const user = await this.trakt.findOneBy({snowflake: snowflake})
     if (user != null) {

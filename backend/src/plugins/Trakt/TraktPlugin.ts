@@ -1,4 +1,4 @@
-import { guildPlugin, GuildPluginData } from "vety";
+import { guildPlugin, GuildPluginData, guildPluginSlashCommand, guildPluginSlashGroup, slashOptions } from "vety";
 import { TraktPluginType, zTraktConfig } from "./types.js";
 import { GuildTrakt } from "data/GuildTrakt.js";
 import { GuildSavedMessages } from "data/GuildSavedMessages.js";
@@ -12,6 +12,7 @@ import { RoleManagerPlugin } from "plugins/RoleManager/RoleManagerPlugin.js";
 import { ModActionsPlugin } from "plugins/ModActions/ModActionsPlugin.js";
 import { MutesPlugin } from "plugins/Mutes/MutesPlugin.js";
 import { resolveChannelIds } from "utils/resolveChannelIds.js";
+import { ReportSlashCmd, ResetSlashCmd } from "./commands/TraktCommands.js";
 
 export const TraktPlugin = guildPlugin<TraktPluginType>()({
   name: "trakt",
@@ -22,6 +23,17 @@ export const TraktPlugin = guildPlugin<TraktPluginType>()({
   ],
 
   configSchema: zTraktConfig,
+
+  slashCommands: [
+    guildPluginSlashGroup<TraktPluginType>()({
+      name: "regular",
+      description: "Regular tracking",
+      subcommands: [
+        ReportSlashCmd,
+        ResetSlashCmd,
+      ]
+    })
+  ],
 
   beforeLoad(pluginData) {
     const { state, guild } = pluginData
