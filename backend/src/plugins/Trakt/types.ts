@@ -1,6 +1,6 @@
-import { GuildSavedMessages } from "data/GuildSavedMessages.js";
-import { GuildTrakt } from "data/GuildTrakt.js";
-import { CommonPlugin } from "plugins/Common/CommonPlugin.js";
+import { GuildSavedMessages } from "../../data/GuildSavedMessages.js";
+import { GuildTrakt } from "../../data/GuildTrakt.js";
+import { CommonPlugin } from "../../plugins/Common/CommonPlugin.js";
 import { BasePluginType, pluginUtils } from "vety";
 import { z } from "zod";
 

@@ -1,6 +1,6 @@
 import { guildPluginEventListener } from "vety";
 import { TraktPluginType } from "../types.js";
-import { resolveMember, Snowflake } from "utils.js";
+import { resolveMember, Snowflake } from "../../../utils.js";
 
 export const TrakMessageCreate = guildPluginEventListener<TraktPluginType>()({
   event: "messageCreate",

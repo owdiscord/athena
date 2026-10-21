@@ -5,16 +5,16 @@ import {
   guildPluginSlashGroup,
 } from "vety";
 import { TraktPluginType, zTraktConfig } from "./types.js";
-import { GuildTrakt } from "data/GuildTrakt.js";
+import { GuildTrakt } from "../../data/GuildTrakt.js";
 import { GuildSavedMessages } from "data/GuildSavedMessages.js";
-import { resolveRoleId } from "utils.js";
+import { resolveRoleId } from "../../utils.js";
 import { TextChannel } from "discord.js";
-import { CommonPlugin } from "plugins/Common/CommonPlugin.js";
-import { TraktUser } from "data/entities/TraktUser.js";
-import { memberRolesLock } from "utils/lockNameHelpers.js";
-import { RoleManagerPlugin } from "plugins/RoleManager/RoleManagerPlugin.js";
-import { ModActionsPlugin } from "plugins/ModActions/ModActionsPlugin.js";
-import { MutesPlugin } from "plugins/Mutes/MutesPlugin.js";
+import { CommonPlugin } from "../../plugins/Common/CommonPlugin.js";
+import { TraktUser } from "../../data/entities/TraktUser.js";
+import { memberRolesLock } from "../../utils/lockNameHelpers.js";
+import { RoleManagerPlugin } from "../../plugins/RoleManager/RoleManagerPlugin.js";
+import { ModActionsPlugin } from "../../plugins/ModActions/ModActionsPlugin.js";
+import { MutesPlugin } from "../../plugins/Mutes/MutesPlugin.js";
 import { ReportSlashCmd, ResetSlashCmd } from "./commands/TraktCommands.js";
 import { TrakMessageCreate } from "./events/trakMessageCreate.js";
 
