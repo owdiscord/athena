@@ -79,6 +79,8 @@ import { WelcomeMessagePlugin } from "./WelcomeMessage/WelcomeMessagePlugin.js";
 import { welcomeMessagePluginDocs } from "./WelcomeMessage/docs.js";
 import { CommandAliasesPlugin } from "./CommandAliases/CommandAliasesPlugin.js";
 import { commandAliasesPluginDocs } from "./CommandAliases/docs.js";
+import { TraktPlugin } from "./Trakt/TraktPlugin.js";
+import { traktPluginDocs } from "./Trakt/docs.js";
 
 export const availableGuildPlugins: ZeppelinGuildPluginInfo[] = [
   {
@@ -224,6 +226,10 @@ export const availableGuildPlugins: ZeppelinGuildPluginInfo[] = [
     plugin: TimeAndDatePlugin,
     docs: timeAndDatePluginDocs,
     autoload: true,
+  },
+  {
+    plugin: TraktPlugin,
+    docs: traktPluginDocs,
   },
   {
     plugin: UsernameSaverPlugin,
