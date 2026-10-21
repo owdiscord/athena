@@ -7,9 +7,8 @@ import {
 import { TraktPluginType, zTraktConfig } from "./types.js";
 import { GuildTrakt } from "data/GuildTrakt.js";
 import { GuildSavedMessages } from "data/GuildSavedMessages.js";
-import { SavedMessage } from "data/entities/SavedMessage.js";
-import { resolveMember, resolveRoleId } from "utils.js";
-import { Snowflake, TextChannel } from "discord.js";
+import { resolveRoleId } from "utils.js";
+import { TextChannel } from "discord.js";
 import { CommonPlugin } from "plugins/Common/CommonPlugin.js";
 import { TraktUser } from "data/entities/TraktUser.js";
 import { memberRolesLock } from "utils/lockNameHelpers.js";
@@ -17,6 +16,7 @@ import { RoleManagerPlugin } from "plugins/RoleManager/RoleManagerPlugin.js";
 import { ModActionsPlugin } from "plugins/ModActions/ModActionsPlugin.js";
 import { MutesPlugin } from "plugins/Mutes/MutesPlugin.js";
 import { ReportSlashCmd, ResetSlashCmd } from "./commands/TraktCommands.js";
+import { TrakMessageCreate } from "./events/trakMessageCreate.js";
 
 export const TraktPlugin = guildPlugin<TraktPluginType>()({
   name: "trakt",
@@ -49,6 +49,7 @@ export const TraktPlugin = guildPlugin<TraktPluginType>()({
 
   beforeLoad(pluginData) {
     const { state, guild } = pluginData;
+    state.onMessageCreateFn = TrakMessageCreate;
     state.users = GuildTrakt.getGuildInstance(guild.id);
     state.savedMessages = GuildSavedMessages.getGuildInstance(guild.id);
     state.cooldowns = new Map();
@@ -72,6 +73,12 @@ export const TraktPlugin = guildPlugin<TraktPluginType>()({
     const modActionsEvents = pluginData
       .getPlugin(ModActionsPlugin)
       .getEventEmitter();
+
+    pluginData.state.savedMessages.events.on(
+      "create",
+      pluginData.state.onMessageCreateFn,
+    );
+
     modActionsEvents.on("warn", (userId, _reason, _isAutomodAction) => {
       const config = pluginData.config.get();
       pluginData.state.users.warn(Number(userId), config.warn_delay_periods);
@@ -158,37 +165,4 @@ async function stripRegular(
       );
     }
   });
-}
-
-async function onMessageCreate(
-  pluginData: GuildPluginData<TraktPluginType>,
-  msg: SavedMessage,
-) {
-  if (msg.is_bot) return;
-  if (!msg.data.content) return;
-
-  const member = await resolveMember(
-    pluginData.client,
-    pluginData.guild,
-    msg.user_id,
-  );
-  if (!member) return;
-
-  const channel = pluginData.guild.channels.cache.get(
-    msg.channel_id as Snowflake,
-  );
-  if (!channel?.isTextBased()) return;
-
-  const config = pluginData.config.get();
-  const now = Date.now();
-  const earliestTs = now - 1000 * config.message_cooldown;
-
-  if (pluginData.state.cooldowns[member.id] >= earliestTs) {
-    return;
-  }
-  pluginData.state.cooldowns[member.id] = now;
-  pluginData.state.users.messageScoreTick(
-    Number(member.id),
-    config.message_score_threshold + 10,
-  );
 }
