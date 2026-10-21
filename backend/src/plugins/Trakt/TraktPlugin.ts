@@ -6,7 +6,7 @@ import {
 } from "vety";
 import { TraktPluginType, zTraktConfig } from "./types.js";
 import { GuildTrakt } from "../../data/GuildTrakt.js";
-import { GuildSavedMessages } from "data/GuildSavedMessages.js";
+import { GuildSavedMessages } from "../../data/GuildSavedMessages.js";
 import { resolveRoleId } from "../../utils.js";
 import { TextChannel } from "discord.js";
 import { CommonPlugin } from "../../plugins/Common/CommonPlugin.js";
