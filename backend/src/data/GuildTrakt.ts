@@ -12,56 +12,63 @@ export class GuildTrakt extends BaseGuildRepository {
   }
 
   async find(snowflake: number): Promise<TraktUser | null> {
-    return this.trakt.findOneBy({snowflake: snowflake})
+    return this.trakt.findOneBy({ snowflake: snowflake });
   }
 
   async delete(snowflake: number) {
-    this.trakt.delete({ snowflake: snowflake })
+    this.trakt.delete({ snowflake: snowflake });
   }
 
   async overrideTime(snowflake: number, timeScore: number): Promise<boolean> {
-    const user = await this.trakt.findOneBy({ snowflake: snowflake })
-    if (!user) return false
-    user.time_score = timeScore
-    await this.trakt.save(user)
-    return true
+    const user = await this.trakt.findOneBy({ snowflake: snowflake });
+    if (!user) return false;
+    user.time_score = timeScore;
+    await this.trakt.save(user);
+    return true;
   }
 
-  async overrideMessage(snowflake: number, messageScore: number): Promise<boolean> {
-    const user = await this.trakt.findOneBy({ snowflake: snowflake })
-    if (!user) return false
-    user.message_score = messageScore
-    await this.trakt.save(user)
-    return true
+  async overrideMessage(
+    snowflake: number,
+    messageScore: number,
+  ): Promise<boolean> {
+    const user = await this.trakt.findOneBy({ snowflake: snowflake });
+    if (!user) return false;
+    user.message_score = messageScore;
+    await this.trakt.save(user);
+    return true;
   }
 
   async mutateIfExists(snowflake: number, action: (user: TraktUser) => void) {
-    const user = await this.trakt.findOneBy({snowflake: snowflake})
+    const user = await this.trakt.findOneBy({ snowflake: snowflake });
     if (user != null) {
-      action(user)
-      await this.trakt.save(user)
+      action(user);
+      await this.trakt.save(user);
     }
   }
 
   async mutateWithCreate(snowflake: number, action: (user: TraktUser) => void) {
-    var user = await this.trakt.findOneBy({snowflake: snowflake})
+    var user = await this.trakt.findOneBy({ snowflake: snowflake });
     if (user != null) {
-      action(user)
+      action(user);
     } else {
-      user = new TraktUser()
-      user.snowflake = snowflake
-      action(user)
+      user = new TraktUser();
+      user.snowflake = snowflake;
+      action(user);
     }
-    await this.trakt.save(user)
+    await this.trakt.save(user);
   }
 
-  async timeScoreTick(snowflake: number, timeTrackingThreshold: number, timeScoreThreshold: number) {
+  async timeScoreTick(
+    snowflake: number,
+    timeTrackingThreshold: number,
+    timeScoreThreshold: number,
+  ) {
     var users = await this.trakt.find({
       where: {
-        message_score: MoreThanOrEqual(timeTrackingThreshold)
-      }
-    })
-    users.forEach(user => {
+        message_score: MoreThanOrEqual(timeTrackingThreshold),
+      },
+    });
+    users.forEach((user) => {
       if (user.time_score < timeScoreThreshold) {
         user.time_score++;
       }
@@ -70,7 +77,7 @@ export class GuildTrakt extends BaseGuildRepository {
   }
 
   async messageScoreTick(snowflake: number, messageScoreCap: number) {
-    var user = await this.trakt.findOneBy({snowflake: snowflake})
+    var user = await this.trakt.findOneBy({ snowflake: snowflake });
     if (user != null) {
       if (user.message_score < messageScoreCap) {
         user.message_score++;
@@ -86,47 +93,54 @@ export class GuildTrakt extends BaseGuildRepository {
     const users = await this.trakt.find();
     const toUpdate: TraktUser[] = [];
     const toDelete: TraktUser[] = [];
-    users.forEach(user => {
+    users.forEach((user) => {
       user.time_score -= magnitude;
       (user.time_score <= 0 ? toDelete : toUpdate).push(user);
     });
     if (toUpdate.length > 0) {
-      this.trakt.save(toUpdate)
+      this.trakt.save(toUpdate);
     }
     if (toDelete.length > 0) {
-      this.trakt.delete(toDelete)
+      this.trakt.delete(toDelete);
     }
-    return toDelete
+    return toDelete;
   }
 
-  async regularSweep(messageScoreThreshold: number, timeScoreThreshold: number): Promise<TraktUser[]> {
+  async regularSweep(
+    messageScoreThreshold: number,
+    timeScoreThreshold: number,
+  ): Promise<TraktUser[]> {
     const users = await this.trakt.find();
     const qualified: TraktUser[] = [];
-    users.forEach(user => {
-      if (!user.has_regular && user.time_score >= timeScoreThreshold && user.message_score >= messageScoreThreshold) {
-        user.has_regular = true
-        qualified.push(user)
+    users.forEach((user) => {
+      if (
+        !user.has_regular &&
+        user.time_score >= timeScoreThreshold &&
+        user.message_score >= messageScoreThreshold
+      ) {
+        user.has_regular = true;
+        qualified.push(user);
       }
     });
-    await this.trakt.save(qualified)
-    return qualified
+    await this.trakt.save(qualified);
+    return qualified;
   }
 
   async warn(snowflake: number, timeDecrement: number) {
-    const user = await this.trakt.findOneBy({snowflake: snowflake})
+    const user = await this.trakt.findOneBy({ snowflake: snowflake });
     if (user != null) {
-      user.time_score -= timeDecrement
-      await this.trakt.save(user)
+      user.time_score -= timeDecrement;
+      await this.trakt.save(user);
     }
   }
 
   async sanction(snowflake: number, newTimeValue: number) {
-    const user = await this.trakt.findOneBy({snowflake: snowflake})
+    const user = await this.trakt.findOneBy({ snowflake: snowflake });
     if (user != null) {
-      user.has_regular = false
-      user.time_score = -newTimeValue
-      user.message_score = 0
-      await this.trakt.save(user)
+      user.has_regular = false;
+      user.time_score = -newTimeValue;
+      user.message_score = 0;
+      await this.trakt.save(user);
     }
   }
 }
