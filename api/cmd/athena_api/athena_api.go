@@ -12,6 +12,7 @@ import (
 	echomiddleware "github.com/labstack/echo/v5/middleware"
 
 	"github.com/owdiscord/athena/api/internal/db"
+	"github.com/owdiscord/athena/api/internal/docs"
 	"github.com/owdiscord/athena/api/internal/handlers"
 
 	"github.com/owdiscord/athena/api/internal/middleware"
@@ -38,7 +39,12 @@ func main() {
 		Scopes:       []string{"identify"},
 	}
 
-	handlers := handlers.New(os.Getenv("KEY"), discord, db)
+	pluginDocs, err := docs.Parse()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	handlers := handlers.New(os.Getenv("KEY"), discord, db, pluginDocs)
 
 	app := echo.New()
 	app.Use(echomiddleware.RequestLoggerWithConfig(echomiddleware.RequestLoggerConfig{
@@ -86,6 +92,9 @@ func main() {
 	g.POST("/guilds/:guildId/config", handlers.SaveConfig)
 	g.GET("/guilds/:guildId/permissions", handlers.GetPermissions)
 	g.POST("/guilds/:guildId/set-target-permissions", handlers.SetTargetPermissions)
+
+	app.GET("/api/docs/plugins", handlers.AllPlugins)
+	app.GET("/api/docs/plugins/:name", handlers.PluginByName)
 
 	if err := app.Start("0.0.0.0:8080"); err != nil {
 		app.Logger.Error("Failed to start server", "error", err)

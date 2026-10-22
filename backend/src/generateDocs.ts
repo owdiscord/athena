@@ -138,14 +138,16 @@ async function main() {
 
   const dir = import.meta.dirname;
   await writeFile(
-    join(dir, "../../", "docs.json"),
+    join(dir, "../../api/internal/docs/", "docs.json"),
     JSON.stringify(pluginList, null, 2),
   );
 }
 
 main()
   .then(() => {
-    console.log("Docs generated successfully. Output to docs.json");
+    console.log(
+      "Docs generated successfully. Output to /api/internal/docs/docs.json",
+    );
     process.exit();
   })
   .catch((e) => {
