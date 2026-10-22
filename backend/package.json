@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "tsc --build",
+    "build-docs": "tsc --build && node ./dist/generateDocs.js",
     "swc-build": "swc src -d dist --strip-leading-paths --copy-files",
     "typecheck": "tsc --noEmit",
     "start-bot-dev": "node --enable-source-maps --stack-trace-limit=30 --trace-warnings --inspect=0.0.0.0:9229 dist/index.js",

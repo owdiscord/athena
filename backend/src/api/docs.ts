@@ -38,7 +38,9 @@ function isZodLiteral(schema: z.ZodType): schema is z.ZodLiteral<any> {
   return schema.def.type === "literal";
 }
 
-function isZodIntersection(schema: z.ZodType): schema is z.ZodIntersection<any, any> {
+function isZodIntersection(
+  schema: z.ZodType,
+): schema is z.ZodIntersection<any, any> {
   return schema.def.type === "intersection";
 }
 
@@ -47,13 +49,22 @@ function formatZodConfigSchema(schema: z.ZodType) {
     return (
       `{\n` +
       Object.entries(schema.def.shape)
-        .map(([k, value]) => indentLines(`${k}: ${formatZodConfigSchema(value as z.ZodType)}`, 2))
+        .map(([k, value]) =>
+          indentLines(`${k}: ${formatZodConfigSchema(value as z.ZodType)}`, 2),
+        )
         .join("\n") +
       "\n}"
     );
   }
   if (isZodRecord(schema)) {
-    return "{\n" + indentLines(`[string]: ${formatZodConfigSchema(schema.valueType as z.ZodType)}`, 2) + "\n}";
+    return (
+      "{\n" +
+      indentLines(
+        `[string]: ${formatZodConfigSchema(schema.valueType as z.ZodType)}`,
+        2,
+      ) +
+      "\n}"
+    );
   }
   if (isZodOptional(schema)) {
     return `Optional<${formatZodConfigSchema(schema.def.innerType)}>`;
@@ -97,16 +108,17 @@ function formatZodConfigSchema(schema: z.ZodType) {
   return "unknown";
 }
 
-const availableGuildPluginsByName = availableGuildPlugins.reduce<Record<string, ZeppelinGuildPluginInfo>>(
-  (map, obj) => {
-    map[obj.plugin.name] = obj;
-    return map;
-  },
-  {},
-);
+const availableGuildPluginsByName = availableGuildPlugins.reduce<
+  Record<string, ZeppelinGuildPluginInfo>
+>((map, obj) => {
+  map[obj.plugin.name] = obj;
+  return map;
+}, {});
 
 export function initDocs(router: express.Router) {
-  const docsPlugins = availableGuildPlugins.filter((obj) => obj.docs.type !== "internal");
+  const docsPlugins = availableGuildPlugins.filter(
+    (obj) => obj.docs.type !== "internal",
+  );
 
   router.get("/docs/plugins", (req: express.Request, res: express.Response) => {
     res.json(
@@ -120,32 +132,38 @@ export function initDocs(router: express.Router) {
     );
   });
 
-  router.get("/docs/plugins/:pluginName", (req: express.Request, res: express.Response) => {
-    const pluginInfo = availableGuildPluginsByName[req.params.pluginName];
-    if (!pluginInfo) {
-      return notFound(res);
-    }
+  router.get(
+    "/docs/plugins/:pluginName",
+    (req: express.Request, res: express.Response) => {
+      const pluginInfo = availableGuildPluginsByName[req.params.pluginName];
+      if (!pluginInfo) {
+        return notFound(res);
+      }
 
-    const { configSchema, ...info } = pluginInfo.docs;
-    const formattedConfigSchema = formatZodConfigSchema(configSchema);
+      const { configSchema, ...info } = pluginInfo.docs;
+      const formattedConfigSchema = formatZodConfigSchema(configSchema);
 
-    const messageCommands = (pluginInfo.plugin.messageCommands || []).map((cmd) => ({
-      trigger: cmd.trigger,
-      permission: cmd.permission,
-      signature: cmd.signature,
-      description: cmd.description,
-      usage: cmd.usage,
-      config: cmd.config,
-    }));
+      const messageCommands = (pluginInfo.plugin.messageCommands || []).map(
+        (cmd) => ({
+          trigger: cmd.trigger,
+          permission: cmd.permission,
+          signature: cmd.signature,
+          description: cmd.description,
+          usage: cmd.usage,
+          config: cmd.config,
+        }),
+      );
 
-    const defaultOptions = pluginInfo.docs.configSchema.safeParse({}).data ?? {};
+      const defaultOptions =
+        pluginInfo.docs.configSchema.safeParse({}).data ?? {};
 
-    res.json({
-      name: pluginInfo.plugin.name,
-      info,
-      configSchema: formattedConfigSchema,
-      defaultOptions,
-      messageCommands,
-    });
-  });
+      res.json({
+        name: pluginInfo.plugin.name,
+        info,
+        configSchema: formattedConfigSchema,
+        defaultOptions,
+        messageCommands,
+      });
+    },
+  );
 }
