@@ -11,11 +11,14 @@ interface GuildEventArgs extends Record<string, unknown[]> {
   reminder: [Reminder];
   expiredTempban: [Tempban];
   expiredVCAlert: [VCAlert];
+  traktAssignment: [];
 }
 
 type GuildEvent = keyof GuildEventArgs;
 
-type GuildEventListener<K extends GuildEvent> = (...args: GuildEventArgs[K]) => void;
+type GuildEventListener<K extends GuildEvent> = (
+  ...args: GuildEventArgs[K]
+) => void;
 
 type ListenerMap = {
   [K in GuildEvent]?: Array<GuildEventListener<K>>;
@@ -41,11 +44,18 @@ export function onGuildEvent<K extends GuildEvent>(
   listenerMap[eventName]!.push(listener);
 
   return () => {
-    listenerMap[eventName]!.splice(listenerMap[eventName]!.indexOf(listener), 1);
+    listenerMap[eventName]!.splice(
+      listenerMap[eventName]!.indexOf(listener),
+      1,
+    );
   };
 }
 
-export function emitGuildEvent<K extends GuildEvent>(guildId: string, eventName: K, args: GuildEventArgs[K]): void {
+export function emitGuildEvent<K extends GuildEvent>(
+  guildId: string,
+  eventName: K,
+  args: GuildEventArgs[K],
+): void {
   if (!guildListeners.has(guildId)) {
     return;
   }
@@ -58,7 +68,10 @@ export function emitGuildEvent<K extends GuildEvent>(guildId: string, eventName:
   }
 }
 
-export function hasGuildEventListener<K extends GuildEvent>(guildId: string, eventName: K): boolean {
+export function hasGuildEventListener<K extends GuildEvent>(
+  guildId: string,
+  eventName: K,
+): boolean {
   if (!guildListeners.has(guildId)) {
     return false;
   }
@@ -67,4 +80,13 @@ export function hasGuildEventListener<K extends GuildEvent>(guildId: string, eve
     return false;
   }
   return true;
+}
+
+export function getActiveGuildIDsForEvent(event: GuildEvent): string[] {
+  // I love functional programming :>
+  return Array.from(guildListeners).reduce(
+    (acc, [guild, listeners]) =>
+      listeners[event] === undefined ? acc : [guild, ...acc],
+    [] as string[],
+  );
 }

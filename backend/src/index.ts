@@ -38,7 +38,10 @@ import { runUpcomingScheduledPostsLoop } from "./data/loops/upcomingScheduledPos
 import { consumeQueryStats } from "./data/queryLogger.js";
 import { env } from "./env.js";
 import { logger } from "./logger.js";
-import { availableGlobalPlugins, availableGuildPlugins } from "./plugins/availablePlugins.js";
+import {
+  availableGlobalPlugins,
+  availableGuildPlugins,
+} from "./plugins/availablePlugins.js";
 import { setProfiler } from "./profiler.js";
 import { logRateLimit } from "./rateLimitStats.js";
 import { startUptimeCounter } from "./uptime.js";
@@ -54,6 +57,7 @@ import {
 import { DecayingCounter } from "./utils/DecayingCounter.js";
 import { enableProfiling } from "./utils/easyProfiler.js";
 import { loadYamlSafely } from "./utils/loadYamlSafely.js";
+import { runTraktAssignmentLoop } from "./data/loops/traktAssignmentLoop.js";
 
 // Error handling
 let recentPluginErrors = 0;
@@ -62,8 +66,14 @@ const RECENT_PLUGIN_ERROR_EXIT_THRESHOLD = 5;
 let recentDiscordErrors = 0;
 const RECENT_DISCORD_ERROR_EXIT_THRESHOLD = 5;
 
-setInterval(() => (recentPluginErrors = Math.max(0, recentPluginErrors - 1)), 2000);
-setInterval(() => (recentDiscordErrors = Math.max(0, recentDiscordErrors - 1)), 2000);
+setInterval(
+  () => (recentPluginErrors = Math.max(0, recentPluginErrors - 1)),
+  2000,
+);
+setInterval(
+  () => (recentDiscordErrors = Math.max(0, recentDiscordErrors - 1)),
+  2000,
+);
 
 // Eris handles these internally, so we don't need to panic if we get one of them
 const SAFE_TO_IGNORE_ERIS_ERROR_CODES = [
@@ -72,14 +82,17 @@ const SAFE_TO_IGNORE_ERIS_ERROR_CODES = [
   "ECONNRESET", // Pretty much the same as above
 ];
 
-const SAFE_TO_IGNORE_ERIS_ERROR_MESSAGES = ["Server didn't acknowledge previous heartbeat, possible lost connection"];
+const SAFE_TO_IGNORE_ERIS_ERROR_MESSAGES = [
+  "Server didn't acknowledge previous heartbeat, possible lost connection",
+];
 
 // Ignore plugin load errors during initial startup to avoid noise in the logs
 let ignorePluginLoadErrors = true;
 
 function errorHandler(err) {
   const guildId = err.guild?.id || err.guildId || "0";
-  const guildName = err.guild?.name || (guildId && guildId !== "0" ? "Unknown" : "Global");
+  const guildName =
+    err.guild?.name || (guildId && guildId !== "0" ? "Unknown" : "Global");
 
   if (err instanceof RecoverablePluginError) {
     // Recoverable plugin errors can be, well, recovered from.
@@ -99,7 +112,9 @@ function errorHandler(err) {
   if (err instanceof PluginLoadError) {
     if (!ignorePluginLoadErrors) {
       // tslint:disable:no-console
-      console.warn(`${guildName} (${guildId}): Failed to load plugin '${err.pluginName}': ${err.message}`);
+      console.warn(
+        `${guildName} (${guildId}): Failed to load plugin '${err.pluginName}': ${err.message}`,
+      );
     }
     return;
   }
@@ -109,7 +124,10 @@ function errorHandler(err) {
       return;
     }
 
-    if (err.message && SAFE_TO_IGNORE_ERIS_ERROR_MESSAGES.includes(err.message)) {
+    if (
+      err.message &&
+      SAFE_TO_IGNORE_ERIS_ERROR_MESSAGES.includes(err.message)
+    ) {
       return;
     }
   }
@@ -128,7 +146,10 @@ function errorHandler(err) {
   }
 
   // FIXME: Hotfix
-  if (err.message && err.message.startsWith("Unknown custom override criteria")) {
+  if (
+    err.message &&
+    err.message.startsWith("Unknown custom override criteria")
+  ) {
     // console.warn(err.message);
     return;
   }
@@ -158,14 +179,18 @@ function errorHandler(err) {
   if (err instanceof PluginError) {
     // Tolerate a few recent plugin errors before crashing
     if (++recentPluginErrors >= RECENT_PLUGIN_ERROR_EXIT_THRESHOLD) {
-      console.error(`Exiting after ${RECENT_PLUGIN_ERROR_EXIT_THRESHOLD} plugin errors`);
+      console.error(
+        `Exiting after ${RECENT_PLUGIN_ERROR_EXIT_THRESHOLD} plugin errors`,
+      );
       process.exit(1);
     }
   } else if (isDiscordAPIError(err) || isDiscordHTTPError(err)) {
     // Discord API errors, usually safe to just log instead of crash
     // We still bail if we get a ton of them in a short amount of time
     if (++recentDiscordErrors >= RECENT_DISCORD_ERROR_EXIT_THRESHOLD) {
-      console.error(`Exiting after ${RECENT_DISCORD_ERROR_EXIT_THRESHOLD} API errors`);
+      console.error(
+        `Exiting after ${RECENT_DISCORD_ERROR_EXIT_THRESHOLD} API errors`,
+      );
       process.exit(1);
     }
   } else {
@@ -180,12 +205,18 @@ process.on("unhandledRejection", errorHandler);
 
 // Verify required Node.js version
 const REQUIRED_NODE_VERSION = "16.9.0";
-const requiredParts = REQUIRED_NODE_VERSION.split(".").map((v) => parseInt(v, 10));
-const actualVersionParts = process.versions.node.split(".").map((v) => parseInt(v, 10));
+const requiredParts = REQUIRED_NODE_VERSION.split(".").map((v) =>
+  parseInt(v, 10),
+);
+const actualVersionParts = process.versions.node
+  .split(".")
+  .map((v) => parseInt(v, 10));
 for (const [i, part] of actualVersionParts.entries()) {
   if (part > requiredParts[i]) break;
   if (part === requiredParts[i]) continue;
-  throw new SimpleError(`Unsupported Node.js version! Must be at least ${REQUIRED_NODE_VERSION}`);
+  throw new SimpleError(
+    `Unsupported Node.js version! Must be at least ${REQUIRED_NODE_VERSION}`,
+  );
 }
 
 // Always use UTC internally
@@ -209,7 +240,9 @@ setInterval(
     const avgBlocking = avgTotal / (avgCount || 1);
     // FIXME: Debug
     // tslint:disable-next-line:no-console
-    console.log(`Average blocking in the last 5min: ${avgBlocking / avgTotal}ms`);
+    console.log(
+      `Average blocking in the last 5min: ${avgBlocking / avgTotal}ms`,
+    );
     avgTotal = 0;
     avgCount = 0;
   },
@@ -223,7 +256,13 @@ if (env.DEBUG) {
 logger.info("Connecting to database");
 connect().then(async () => {
   const client = new Client({
-    partials: [Partials.User, Partials.Channel, Partials.GuildMember, Partials.Message, Partials.Reaction],
+    partials: [
+      Partials.User,
+      Partials.Channel,
+      Partials.GuildMember,
+      Partials.Message,
+      Partials.Reaction,
+    ],
 
     makeCache: Options.cacheWithLimits({
       ...Options.DefaultMakeCacheSettings,
@@ -254,7 +293,7 @@ connect().then(async () => {
       GatewayIntentBits.GuildMessageTyping,
       GatewayIntentBits.DirectMessages,
       GatewayIntentBits.GuildModeration,
-      GatewayIntentBits.GuildEmojisAndStickers,
+      GatewayIntentBits.GuildExpressions,
       GatewayIntentBits.GuildInvites,
       GatewayIntentBits.GuildMessageReactions,
       GatewayIntentBits.GuildMessages,
@@ -279,7 +318,9 @@ connect().then(async () => {
     const value = safe429Counter.add(1);
     if (value > safe429MaxCount) {
       // tslint:disable-next-line:no-console
-      console.error(`Too many 429s (over ${safe429MaxCount} in ${safe429MaxCount * safe429DecayInterval}ms), exiting`);
+      console.error(
+        `Too many 429s (over ${safe429MaxCount} in ${safe429MaxCount * safe429DecayInterval}ms), exiting`,
+      );
       process.exit(1);
     }
   });
@@ -316,11 +357,16 @@ connect().then(async () => {
         }
 
         const configuredPlugins = ctx.config.plugins;
-        const autoloadPluginNames = availableGuildPlugins.filter((obj) => obj.autoload).map((obj) => obj.plugin.name);
+        const autoloadPluginNames = availableGuildPlugins
+          .filter((obj) => obj.autoload)
+          .map((obj) => obj.plugin.name);
 
         return Array.from(plugins.keys()).filter((pluginName) => {
           if (autoloadPluginNames.includes(pluginName)) return true;
-          return configuredPlugins[pluginName] && (configuredPlugins[pluginName] as any).enabled !== false;
+          return (
+            configuredPlugins[pluginName] &&
+            (configuredPlugins[pluginName] as any).enabled !== false
+          );
         });
       },
 
@@ -387,17 +433,25 @@ connect().then(async () => {
 
       sendSuccessMessageFn(channel, body) {
         const guildId =
-          channel instanceof TextChannel || channel instanceof ThreadChannel ? channel.guild.id : undefined;
-        // @ts-expect-error
-        const emoji = guildId ? bot.getLoadedGuild(guildId)!.config.success_emoji : undefined;
+          channel instanceof TextChannel || channel instanceof ThreadChannel
+            ? channel.guild.id
+            : undefined;
+        const emoji = guildId
+          ? // @ts-expect-error
+            bot.getLoadedGuild(guildId)!.config.success_emoji
+          : undefined;
         channel.send(successMessage(body, emoji));
       },
 
       sendErrorMessageFn(channel, body) {
         const guildId =
-          channel instanceof TextChannel || channel instanceof ThreadChannel ? channel.guild.id : undefined;
-        // @ts-expect-error
-        const emoji = guildId ? bot.getLoadedGuild(guildId)!.config.error_emoji : undefined;
+          channel instanceof TextChannel || channel instanceof ThreadChannel
+            ? channel.guild.id
+            : undefined;
+        const emoji = guildId
+          ? // @ts-expect-error
+            bot.getLoadedGuild(guildId)!.config.error_emoji
+          : undefined;
         channel.send(errorMessage(body, emoji));
       },
     },
@@ -440,17 +494,25 @@ connect().then(async () => {
     runExpiredMemberCacheDeletionLoop();
     await sleep(10 * SECONDS);
     runMemberCacheDeletionLoop();
+    await sleep(10 * SECONDS);
+    runTraktAssignmentLoop();
   });
 
   let lowestGlobalRemaining = Infinity;
   setInterval(() => {
-    lowestGlobalRemaining = Math.min(lowestGlobalRemaining, (client as any).rest.globalRemaining);
+    lowestGlobalRemaining = Math.min(
+      lowestGlobalRemaining,
+      (client as any).rest.globalRemaining,
+    );
   }, 100);
   setInterval(() => {
     // FIXME: Debug
     if (lowestGlobalRemaining < 30) {
       // tslint:disable-next-line:no-console
-      console.log("[DEBUG] Lowest global remaining in the past 15 seconds:", lowestGlobalRemaining);
+      console.log(
+        "[DEBUG] Lowest global remaining in the past 15 seconds:",
+        lowestGlobalRemaining,
+      );
     }
     lowestGlobalRemaining = Infinity;
   }, 15000);

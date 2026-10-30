@@ -1,10 +1,14 @@
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, PrimaryColumn, Index } from "typeorm";
 
 @Entity("trakt_users")
+@Index(["guild_id", "snowflake"])
 export class TraktUser {
   @Column()
+  guild_id: string;
+
+  @Column()
   @PrimaryColumn()
-  snowflake: number;
+  snowflake: string;
 
   @Column({ default: 1 }) message_score: number;
 

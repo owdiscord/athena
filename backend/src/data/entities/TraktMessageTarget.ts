@@ -4,7 +4,7 @@ import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 export class TraktMessageTarget {
   @Column()
   @PrimaryColumn()
-  owner: number;
+  owner: string;
 
   @Column()
   @Index()

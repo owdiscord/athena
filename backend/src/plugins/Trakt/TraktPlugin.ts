@@ -7,8 +7,8 @@ import {
 import { TraktPluginType, zTraktConfig } from "./types.js";
 import { GuildTrakt } from "../../data/GuildTrakt.js";
 import { GuildSavedMessages } from "../../data/GuildSavedMessages.js";
-import { resolveRoleId } from "../../utils.js";
-import { TextChannel } from "discord.js";
+import { resolveMember, resolveRoleId } from "../../utils.js";
+import { Snowflake, TextChannel } from "discord.js";
 import { CommonPlugin } from "../../plugins/Common/CommonPlugin.js";
 import { TraktUser } from "../../data/entities/TraktUser.js";
 import { memberRolesLock } from "../../utils/lockNameHelpers.js";
@@ -16,7 +16,8 @@ import { RoleManagerPlugin } from "../../plugins/RoleManager/RoleManagerPlugin.j
 import { ModActionsPlugin } from "../../plugins/ModActions/ModActionsPlugin.js";
 import { MutesPlugin } from "../../plugins/Mutes/MutesPlugin.js";
 import { ReportSlashCmd, ResetSlashCmd } from "./commands/TraktCommands.js";
-import { TrakMessageCreate } from "./events/trakMessageCreate.js";
+import { SavedMessage } from "../../data/entities/SavedMessage.js";
+import { onGuildEvent } from "../../data/GuildEvents.js";
 
 export const TraktPlugin = guildPlugin<TraktPluginType>()({
   name: "trakt",
@@ -25,15 +26,29 @@ export const TraktPlugin = guildPlugin<TraktPluginType>()({
 
   configSchema: zTraktConfig,
 
+  defaultOverrides: [
+    {
+      level: ">=50",
+      config: {
+        can_use_trakt: true,
+      },
+    },
+  ],
+
   messageCommands: [
     guildPluginMessageCommand<TraktPluginType>()({
       trigger: "trakt",
-      permission: "can_view",
+      permission: "can_use_trakt",
       async run({ pluginData, message: msg }) {
-        msg.reply(
-          "Trakt is enabled. Config:\n ```json" +
-            JSON.stringify(pluginData.config, null, 2) +
-            "```",
+        const { state, config } = pluginData;
+        msg.channel.send(
+          `Trakt is enabled and tracking ${await state.users.countTrackedUsers()} users.
+\`\`\`
++----------------------+----------------+
+| Message threshold    | ${config.get().message_score_threshold.toString().padEnd(14, " ")} | 
+| Time threshold (day) | ${config.get().time_score_threshold.toString().padEnd(14, " ")} |
++----------------------+----------------+
+\`\`\``,
         );
       },
     }),
@@ -49,7 +64,8 @@ export const TraktPlugin = guildPlugin<TraktPluginType>()({
 
   beforeLoad(pluginData) {
     const { state, guild } = pluginData;
-    state.onMessageCreateFn = TrakMessageCreate;
+    state.onMessageSaveFn = (msg: SavedMessage) =>
+      trakMessageCreate(pluginData, msg);
     state.users = GuildTrakt.getGuildInstance(guild.id);
     state.savedMessages = GuildSavedMessages.getGuildInstance(guild.id);
     state.cooldowns = new Map();
@@ -60,15 +76,25 @@ export const TraktPlugin = guildPlugin<TraktPluginType>()({
   },
 
   async afterLoad(pluginData) {
+    const { state, guild } = pluginData;
+    const { message_score_threshold, time_score_threshold } =
+      pluginData.config.get();
+
+    onGuildEvent(guild.id, "traktAssignment", async () => {
+      const qualified = await state.users.regularSweep(
+        message_score_threshold,
+        time_score_threshold,
+      );
+
+      await applyRegular(pluginData, qualified);
+    });
+
     pluginData
       .getPlugin(MutesPlugin)
       .getEventEmitter()
       .on("mute", (userId, _reason, _isAutomodAction) => {
         const config = pluginData.config.get();
-        pluginData.state.users.sanction(
-          Number(userId),
-          config.mute_delay_periods,
-        );
+        pluginData.state.users.sanction(userId, config.mute_delay_periods);
       });
     const modActionsEvents = pluginData
       .getPlugin(ModActionsPlugin)
@@ -76,23 +102,25 @@ export const TraktPlugin = guildPlugin<TraktPluginType>()({
 
     pluginData.state.savedMessages.events.on(
       "create",
-      pluginData.state.onMessageCreateFn,
+      pluginData.state.onMessageSaveFn,
     );
 
     modActionsEvents.on("warn", (userId, _reason, _isAutomodAction) => {
       const config = pluginData.config.get();
-      pluginData.state.users.warn(Number(userId), config.warn_delay_periods);
+      pluginData.state.users.warn(userId, config.warn_delay_periods);
     });
     modActionsEvents.on("ban", (userId, _reason, _isAutomodAction) => {
       const config = pluginData.config.get();
-      pluginData.state.users.sanction(Number(userId), config.ban_delay_periods);
+      pluginData.state.users.sanction(userId, config.ban_delay_periods);
     });
     const config = pluginData.config.get();
     pluginData.state.sweepTimer = setInterval(async () => {
+      console.log(`[TRAKT] Sweeping (at ${new Date().toISOString()})`);
       try {
-        const deletedUsers = pluginData.state.users.decayTick(
+        const deletedUsers = await pluginData.state.users.decayTick(
           config.message_decay_magnitude,
         );
+        stripRegular(pluginData, deletedUsers);
         const qualifiedUsers = await pluginData.state.users.regularSweep(
           config.message_score_threshold,
           config.time_score_threshold,
@@ -133,6 +161,12 @@ async function applyRegular(
       );
     }
   });
+
+  for (const [user, time] of pluginData.state.cooldowns.entries()) {
+    if (time > Date.now() + (config.message_cooldown + 1000) * 1.5) {
+      pluginData.state.cooldowns.delete(user);
+    }
+  }
 }
 
 async function stripRegular(
@@ -165,4 +199,37 @@ async function stripRegular(
       );
     }
   });
+}
+
+async function trakMessageCreate(
+  pluginData: GuildPluginData<TraktPluginType>,
+  msg: SavedMessage,
+) {
+  if (msg.is_bot) return;
+  if (!msg.data.content) return;
+
+  const member = await resolveMember(
+    pluginData.client,
+    pluginData.guild,
+    msg.user_id,
+  );
+  if (!member) return;
+
+  const channel = pluginData.guild.channels.cache.get(
+    msg.channel_id as Snowflake,
+  );
+  if (!channel?.isTextBased()) return;
+
+  const config = pluginData.config.get();
+  const now = Date.now();
+  const earliestTs = now - 1000 * config.message_cooldown;
+
+  if (pluginData.state.cooldowns[member.id] >= earliestTs) {
+    return;
+  }
+  pluginData.state.cooldowns[member.id] = now;
+  pluginData.state.users.messageScoreTick(
+    member.id,
+    config.message_score_threshold + 10,
+  );
 }

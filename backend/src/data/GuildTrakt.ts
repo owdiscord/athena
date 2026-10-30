@@ -4,67 +4,95 @@ import { TraktUser } from "./entities/TraktUser.js";
 import { dataSource } from "./dataSource.js";
 
 export class GuildTrakt extends BaseGuildRepository {
-  private trakt: Repository<TraktUser>;
+  private users: Repository<TraktUser>;
 
-  constructor(guildId) {
+  constructor(guildId: string) {
     super(guildId);
-    this.trakt = dataSource.getRepository(TraktUser);
+    this.users = dataSource.getRepository(TraktUser);
   }
 
-  async find(snowflake: number): Promise<TraktUser | null> {
-    return this.trakt.findOneBy({ snowflake: snowflake });
+  async countTrackedUsers(): Promise<number> {
+    return (
+      this.users.count({
+        where: {
+          guild_id: this.guildId,
+        },
+      }) || 0
+    );
   }
 
-  async delete(snowflake: number) {
-    this.trakt.delete({ snowflake: snowflake });
+  async find(snowflake: string): Promise<TraktUser | null> {
+    return this.users.findOneBy({
+      snowflake: snowflake,
+      guild_id: this.guildId,
+    });
   }
 
-  async overrideTime(snowflake: number, timeScore: number): Promise<boolean> {
-    const user = await this.trakt.findOneBy({ snowflake: snowflake });
+  async delete(snowflake: string) {
+    this.users.delete({ snowflake: snowflake, guild_id: this.guildId });
+  }
+
+  async overrideTime(snowflake: string, timeScore: number): Promise<boolean> {
+    const user = await this.users.findOneBy({
+      snowflake: snowflake,
+      guild_id: this.guildId,
+    });
     if (!user) return false;
     user.time_score = timeScore;
-    await this.trakt.save(user);
+    await this.users.save(user);
     return true;
   }
 
   async overrideMessage(
-    snowflake: number,
+    snowflake: string,
     messageScore: number,
   ): Promise<boolean> {
-    const user = await this.trakt.findOneBy({ snowflake: snowflake });
+    const user = await this.users.findOneBy({
+      snowflake: snowflake,
+      guild_id: this.guildId,
+    });
     if (!user) return false;
     user.message_score = messageScore;
-    await this.trakt.save(user);
+    await this.users.save(user);
     return true;
   }
 
-  async mutateIfExists(snowflake: number, action: (user: TraktUser) => void) {
-    const user = await this.trakt.findOneBy({ snowflake: snowflake });
+  async mutateIfExists(snowflake: string, action: (user: TraktUser) => void) {
+    const user = await this.users.findOneBy({
+      snowflake: snowflake,
+      guild_id: this.guildId,
+    });
     if (user != null) {
       action(user);
-      await this.trakt.save(user);
+      await this.users.save(user);
     }
   }
 
-  async mutateWithCreate(snowflake: number, action: (user: TraktUser) => void) {
-    var user = await this.trakt.findOneBy({ snowflake: snowflake });
+  async mutateWithCreate(snowflake: string, action: (user: TraktUser) => void) {
+    var user = await this.users.findOneBy({
+      snowflake: snowflake,
+      guild_id: this.guildId,
+    });
     if (user != null) {
       action(user);
     } else {
       user = new TraktUser();
+      user.guild_id = this.guildId;
       user.snowflake = snowflake;
       action(user);
     }
-    await this.trakt.save(user);
+    await this.users.save(user);
   }
 
   async timeScoreTick(
-    snowflake: number,
+    snowflake: string,
     timeTrackingThreshold: number,
     timeScoreThreshold: number,
   ) {
-    var users = await this.trakt.find({
+    var users = await this.users.find({
       where: {
+        snowflake,
+        guild_id: this.guildId,
         message_score: MoreThanOrEqual(timeTrackingThreshold),
       },
     });
@@ -73,24 +101,28 @@ export class GuildTrakt extends BaseGuildRepository {
         user.time_score++;
       }
     });
-    await this.trakt.save(users);
+    await this.users.save(users);
   }
 
-  async messageScoreTick(snowflake: number, messageScoreCap: number) {
-    var user = await this.trakt.findOneBy({ snowflake: snowflake });
+  async messageScoreTick(snowflake: string, messageScoreCap: number) {
+    var user = await this.users.findOneBy({
+      snowflake: snowflake,
+      guild_id: this.guildId,
+    });
     if (user != null) {
       if (user.message_score < messageScoreCap) {
         user.message_score++;
       }
     } else {
       user = new TraktUser();
+      user.guild_id = this.guildId;
       user.snowflake = snowflake;
     }
-    await this.trakt.save(user);
+    await this.users.save(user);
   }
 
   async decayTick(magnitude: number): Promise<TraktUser[]> {
-    const users = await this.trakt.find();
+    const users = await this.users.find();
     const toUpdate: TraktUser[] = [];
     const toDelete: TraktUser[] = [];
     users.forEach((user) => {
@@ -98,10 +130,10 @@ export class GuildTrakt extends BaseGuildRepository {
       (user.time_score <= 0 ? toDelete : toUpdate).push(user);
     });
     if (toUpdate.length > 0) {
-      this.trakt.save(toUpdate);
+      this.users.save(toUpdate);
     }
     if (toDelete.length > 0) {
-      this.trakt.delete(toDelete);
+      this.users.delete(toDelete);
     }
     return toDelete;
   }
@@ -110,37 +142,46 @@ export class GuildTrakt extends BaseGuildRepository {
     messageScoreThreshold: number,
     timeScoreThreshold: number,
   ): Promise<TraktUser[]> {
-    const users = await this.trakt.find();
-    const qualified: TraktUser[] = [];
-    users.forEach((user) => {
-      if (
-        !user.has_regular &&
-        user.time_score >= timeScoreThreshold &&
-        user.message_score >= messageScoreThreshold
-      ) {
-        user.has_regular = true;
-        qualified.push(user);
-      }
-    });
-    await this.trakt.save(qualified);
+    // Find all users who are qualified to be given regular
+    const qualified = (
+      await this.users.find({
+        where: {
+          guild_id: this.guildId,
+          has_regular: false,
+          time_score: MoreThanOrEqual(timeScoreThreshold),
+          message_score: MoreThanOrEqual(messageScoreThreshold),
+        },
+      })
+    )
+      // Bump their regular status to true in the database and mass-save
+      .map((user) => ({ ...user, has_regular: true }));
+    await this.users.save(qualified);
+
+    // Return the qualified list so we can apply the role
     return qualified;
   }
 
-  async warn(snowflake: number, timeDecrement: number) {
-    const user = await this.trakt.findOneBy({ snowflake: snowflake });
+  async warn(snowflake: string, timeDecrement: number) {
+    const user = await this.users.findOneBy({
+      snowflake: snowflake,
+      guild_id: this.guildId,
+    });
     if (user != null) {
       user.time_score -= timeDecrement;
-      await this.trakt.save(user);
+      await this.users.save(user);
     }
   }
 
-  async sanction(snowflake: number, newTimeValue: number) {
-    const user = await this.trakt.findOneBy({ snowflake: snowflake });
+  async sanction(snowflake: string, newTimeValue: number) {
+    const user = await this.users.findOneBy({
+      snowflake: snowflake,
+      guild_id: this.guildId,
+    });
     if (user != null) {
       user.has_regular = false;
       user.time_score = -newTimeValue;
       user.message_score = 0;
-      await this.trakt.save(user);
+      await this.users.save(user);
     }
   }
 }

@@ -4,12 +4,13 @@ import { TraktPluginType } from "../types.js";
 
 export const ReportSlashCmd = guildPluginSlashCommand<TraktPluginType>()({
   name: "report",
+  configPermission: "can_use_trakt",
   description: "Show all regular tracking information for a user",
   allowDms: false,
   signature: [
-    slashOptions.string({
+    slashOptions.user({
       name: "snowflake",
-      description: "User ID",
+      description: "Username / Snowflake",
       required: true,
     }),
   ],
@@ -19,10 +20,10 @@ export const ReportSlashCmd = guildPluginSlashCommand<TraktPluginType>()({
     const member = await resolveMember(
       pluginData.client,
       pluginData.guild,
-      options.snowflake,
+      options.snowflake.id,
     );
     if (!member) return;
-    const user = await pluginData.state.users.find(Number(options.snowflake));
+    const user = await pluginData.state.users.find(options.snowflake.id);
     if (user == null) {
       pluginData.state.common.sendSuccessMessage(
         interaction,
@@ -44,6 +45,7 @@ export const ReportSlashCmd = guildPluginSlashCommand<TraktPluginType>()({
 
 export const EditSlashCmd = guildPluginSlashCommand<TraktPluginType>()({
   name: "edit",
+  configPermission: "can_use_trakt",
   description: "Change regular tracking information for a user",
   signature: [
     slashOptions.string({
@@ -76,15 +78,9 @@ export const EditSlashCmd = guildPluginSlashCommand<TraktPluginType>()({
     );
     if (!member) return;
     if (options.type === "message_score") {
-      pluginData.state.users.overrideMessage(
-        Number(options.snowflake),
-        options.value,
-      );
+      pluginData.state.users.overrideMessage(options.snowflake, options.value);
     } else if (options.type === "time_score") {
-      pluginData.state.users.overrideTime(
-        Number(options.snowflake),
-        options.value,
-      );
+      pluginData.state.users.overrideTime(options.snowflake, options.value);
     } else {
       pluginData.state.common.sendErrorMessage(
         interaction,
@@ -103,9 +99,9 @@ export const ResetSlashCmd = guildPluginSlashCommand<TraktPluginType>()({
   name: "reset",
   description: "Reset all regular tracking information for a user",
   signature: [
-    slashOptions.string({
+    slashOptions.user({
       name: "snowflake",
-      description: "User ID",
+      description: "Username / Snowflake",
       required: true,
     }),
   ],
@@ -115,10 +111,10 @@ export const ResetSlashCmd = guildPluginSlashCommand<TraktPluginType>()({
     const member = await resolveMember(
       pluginData.client,
       pluginData.guild,
-      options.snowflake,
+      options.snowflake.id,
     );
     if (!member) return;
-    pluginData.state.users.delete(Number(options.snowflake));
+    pluginData.state.users.delete(options.snowflake.id);
     pluginData.state.common.sendSuccessMessage(
       interaction,
       `Forgot about **${member.user.username}**.`,
