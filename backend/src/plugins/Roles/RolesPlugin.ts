@@ -7,6 +7,7 @@ import { AddRoleCmd } from "./commands/AddRoleCmd.js";
 import { MassAddRoleCmd } from "./commands/MassAddRoleCmd.js";
 import { MassRemoveRoleCmd } from "./commands/MassRemoveRoleCmd.js";
 import { RemoveRoleCmd } from "./commands/RemoveRoleCmd.js";
+import { RecreateRoleCmd } from "./commands/RecreateRoleCmd.js";
 import { RolesPluginType, zRolesConfig } from "./types.js";
 
 export const RolesPlugin = guildPlugin<RolesPluginType>()({
@@ -35,6 +36,7 @@ export const RolesPlugin = guildPlugin<RolesPluginType>()({
     RemoveRoleCmd,
     MassAddRoleCmd,
     MassRemoveRoleCmd,
+    RecreateRoleCmd,
   ],
 
   beforeLoad(pluginData) {
