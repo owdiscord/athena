@@ -477,24 +477,24 @@ connect().then(async () => {
 
     initFishFish();
 
-    runExpiringMutesLoop();
-    await sleep(10 * SECONDS);
-    runExpiringTempbansLoop();
-    await sleep(10 * SECONDS);
-    runUpcomingScheduledPostsLoop();
-    await sleep(10 * SECONDS);
-    runUpcomingRemindersLoop();
-    await sleep(10 * SECONDS);
-    runExpiringVCAlertsLoop();
-    await sleep(10 * SECONDS);
-    runExpiredArchiveDeletionLoop();
-    await sleep(10 * SECONDS);
-    runSavedMessageCleanupLoop();
-    await sleep(10 * SECONDS);
-    runExpiredMemberCacheDeletionLoop();
-    await sleep(10 * SECONDS);
-    runMemberCacheDeletionLoop();
-    await sleep(10 * SECONDS);
+    // runExpiringMutesLoop();
+    // await sleep(10 * SECONDS);
+    // runExpiringTempbansLoop();
+    // await sleep(10 * SECONDS);
+    // runUpcomingScheduledPostsLoop();
+    // await sleep(10 * SECONDS);
+    // runUpcomingRemindersLoop();
+    // await sleep(10 * SECONDS);
+    // runExpiringVCAlertsLoop();
+    // await sleep(10 * SECONDS);
+    // runExpiredArchiveDeletionLoop();
+    // await sleep(10 * SECONDS);
+    // runSavedMessageCleanupLoop();
+    // await sleep(10 * SECONDS);
+    // runExpiredMemberCacheDeletionLoop();
+    // await sleep(10 * SECONDS);
+    // runMemberCacheDeletionLoop();
+    // await sleep(10 * SECONDS);
     runTraktAssignmentLoop();
   });
 

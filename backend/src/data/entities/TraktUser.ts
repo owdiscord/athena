@@ -16,5 +16,7 @@ export class TraktUser {
 
   @Column({ default: false }) has_regular: boolean;
 
+  @Column({ nullable: true, type: "datetime" }) last_counted_at: Date | null;
+
   @Column({ default: 0 }) sanction_time: number;
 }

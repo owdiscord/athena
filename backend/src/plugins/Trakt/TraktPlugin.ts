@@ -80,13 +80,26 @@ export const TraktPlugin = guildPlugin<TraktPluginType>()({
     const { message_score_threshold, time_score_threshold } =
       pluginData.config.get();
 
+    state.users.tryCreateFirstTickState();
+
     onGuildEvent(guild.id, "traktAssignment", async () => {
+      // Apply regular to newly-qualified users
       const qualified = await state.users.regularSweep(
         message_score_threshold,
         time_score_threshold,
       );
-
       await applyRegular(pluginData, qualified);
+
+      // Strip regular from now-unworthy users, and tick down if necessary.
+      const revoked = await pluginData.state.users.tryDecay(
+        10,
+        config.time_score_threshold,
+        config.message_decay_magnitude,
+      );
+      stripRegular(pluginData, revoked);
+      console.log(
+        `[TRAKT] ${qualified.length} user(s) receive regular, ${revoked.length} no longer qualified.`,
+      );
     });
 
     pluginData
@@ -114,20 +127,22 @@ export const TraktPlugin = guildPlugin<TraktPluginType>()({
       pluginData.state.users.sanction(userId, config.ban_delay_periods);
     });
     const config = pluginData.config.get();
-    pluginData.state.sweepTimer = setInterval(async () => {
-      console.log(`[TRAKT] Sweeping (at ${new Date().toISOString()})`);
-      try {
-        const deletedUsers = await pluginData.state.users.decayTick(
-          config.message_decay_magnitude,
-        );
-        stripRegular(pluginData, deletedUsers);
-        const qualifiedUsers = await pluginData.state.users.regularSweep(
-          config.message_score_threshold,
-          config.time_score_threshold,
-        );
-        applyRegular(pluginData, qualifiedUsers);
-      } catch (error) {}
-    }, config.message_decay_period * 1000);
+    // pluginData.state.sweepTimer = setInterval(async () => {
+    //   console.log(`[TRAKT] Sweeping (at ${new Date().toISOString()})`);
+    //   try {
+    //     const revoked = await pluginData.state.users.tryDecay(
+    //       10,
+    //       config.message_score_threshold,
+    //       config.message_decay_magnitude,
+    //     );
+    //     stripRegular(pluginData, revoked);
+    //     const qualifiedUsers = await pluginData.state.users.regularSweep(
+    //       config.message_score_threshold,
+    //       config.time_score_threshold,
+    //     );
+    //     applyRegular(pluginData, qualifiedUsers);
+    //   } catch (error) {}
+    // }, config.message_decay_period * 1000);
   },
 });
 
@@ -171,9 +186,9 @@ async function applyRegular(
 
 async function stripRegular(
   pluginData: GuildPluginData<TraktPluginType>,
-  users: TraktUser[],
+  userSnowflakes: string[],
 ) {
-  if (users.length == 0) {
+  if (userSnowflakes.length == 0) {
     return;
   }
   const config = pluginData.config.get();
@@ -187,8 +202,7 @@ async function stripRegular(
   }
   const channel = pluginData.guild.channels.cache.get(config.announce_channel);
   const roleManager = pluginData.getPlugin(RoleManagerPlugin);
-  users.forEach(async (user) => {
-    const id = String(user.snowflake);
+  for (const id of userSnowflakes) {
     const lock = await pluginData.locks.acquire(memberRolesLock({ id: id }));
     roleManager.removeRole(id, roleId);
     lock.unlock();
@@ -198,7 +212,7 @@ async function stripRegular(
         `<@${id}> lost Regular for inactivity.`,
       );
     }
-  });
+  }
 }
 
 async function trakMessageCreate(
@@ -228,7 +242,7 @@ async function trakMessageCreate(
     return;
   }
   pluginData.state.cooldowns[member.id] = now;
-  pluginData.state.users.messageScoreTick(
+  pluginData.state.users.tickUserScore(
     member.id,
     config.message_score_threshold + 10,
   );
