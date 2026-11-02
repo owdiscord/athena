@@ -26,7 +26,7 @@ WORKDIR /app/dashboard
 RUN pnpm run build
 
 # Copy the built files out to a volume
-CMD ["sh", "-c", "'rm -rf /dist/* && cp -r /app/dist/* /dist/'"]
+CMD ["sh", "-c", "rm -rf /dist/* && cp -r /app/dashboard/dist/* /dist/"]
 
 #
 ## Unused runtime image, we now just export the build into a volume.
