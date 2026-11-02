@@ -1,4 +1,3 @@
-import { RoleColorsResolvable } from "discord.js";
 import { commandTypeHelpers as ct } from "../../../commandTypes.js";
 import { resolveRoleId } from "../../../utils.js";
 import { LogsPlugin } from "../../Logs/LogsPlugin.js";
@@ -24,7 +23,15 @@ export const RecreateRoleCmd = rolesCmd({
       return;
     }
 
-    const currentRole = pluginData.guild.roles.cache.get(roleId);
+    const currentRole = await pluginData.guild.roles
+      .fetch(roleId)
+      .catch(
+        (e) =>
+          void pluginData.state.common.sendErrorMessage(
+            msg,
+            `Discord error when deleting role: ${e}`,
+          ),
+      );
     if (!currentRole) {
       pluginData.getPlugin(LogsPlugin).logBotAlert({
         body: `Unknown role configured for 'roles' plugin: ${roleId}`,
@@ -36,7 +43,15 @@ export const RecreateRoleCmd = rolesCmd({
       return;
     }
 
-    const deleted = await currentRole.delete("Recreating role");
+    const deleted = await currentRole
+      .delete("Recreating role")
+      .catch(
+        (e) =>
+          void pluginData.state.common.sendErrorMessage(
+            msg,
+            `Discord error when deleting role: ${e}`,
+          ),
+      );
     if (!deleted) {
       void pluginData.state.common.sendErrorMessage(
         msg,
@@ -45,16 +60,31 @@ export const RecreateRoleCmd = rolesCmd({
       return;
     }
 
-    const created = await pluginData.guild.roles.create({
-      name: currentRole.name,
-      colors: currentRole.colors as RoleColorsResolvable,
-      hoist: currentRole.hoist,
-      position: currentRole.position,
-      permissions: currentRole.permissions,
-      mentionable: currentRole.mentionable,
-      icon: currentRole.icon,
-      unicodeEmoji: currentRole.unicodeEmoji,
-    });
+    const { primaryColor, secondaryColor, tertiaryColor } = currentRole.colors;
+    const colors = {
+      primaryColor,
+      ...(secondaryColor != null && { secondaryColor }),
+      ...(tertiaryColor != null && { tertiaryColor }),
+    };
+
+    const created = await pluginData.guild.roles
+      .create({
+        name: currentRole.name,
+        colors,
+        hoist: currentRole.hoist,
+        position: currentRole.position,
+        permissions: currentRole.permissions,
+        mentionable: currentRole.mentionable,
+        icon: currentRole.icon,
+        unicodeEmoji: currentRole.unicodeEmoji,
+      })
+      .catch(
+        (e) =>
+          void pluginData.state.common.sendErrorMessage(
+            msg,
+            `Discord error when creating role: ${e}`,
+          ),
+      );
     if (!created) {
       void pluginData.state.common.sendErrorMessage(
         msg,
