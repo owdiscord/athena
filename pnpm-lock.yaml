@@ -5,8 +5,8 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  discord.js: 14.23.2
   discord-api-types: 0.38.30
+  discord.js: 14.23.2
 
 importers:
 
@@ -118,6 +118,9 @@ importers:
       pkg-up:
         specifier: ^3.1.0
         version: 3.1.0
+      pnpm:
+        specifier: 12.14.0
+        version: 12.14.0
       redis:
         specifier: ^5.9.0
         version: 5.9.0
