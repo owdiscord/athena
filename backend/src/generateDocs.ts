@@ -122,11 +122,17 @@ async function main() {
     .filter((plugin) => plugin.docs.type !== "internal")
     .map((plugin) => ({
       name: plugin.plugin.name,
-      prettyName: plugin.docs.prettyName,
-      type: plugin.docs.type,
+      info: {
+        description: plugin.docs.description,
+        prettyName: plugin.docs.prettyName,
+        type: plugin.docs.type,
+      },
       defaultOptions: plugin.docs.configSchema.safeParse({}).data ?? {},
-      config: formatZodConfigSchema(plugin.docs.configSchema),
-      commands: (plugin.plugin.messageCommands || []).map((cmd) => ({
+      configSchema: formatZodConfigSchema(plugin.docs.configSchema),
+      slashCommands: (plugin.plugin.slashCommands || []).map((cmd) => ({
+        ...cmd,
+      })),
+      messageCommands: (plugin.plugin.messageCommands || []).map((cmd) => ({
         trigger: cmd.trigger,
         permission: cmd.permission,
         signature: cmd.signature,

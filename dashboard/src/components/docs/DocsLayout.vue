@@ -32,9 +32,9 @@
         v-bind:class="{ closed: !mobileMenuOpen }">
         <div role="none" v-for="(group, index) in menu">
           <h1 class="font-bold" :aria-owns="'menu-group-' + index"
-            :class="{ 'mt-4': typeof index === 'number' && index !== 0 }">{{ group.label }}</h1>
+            :class="{ 'mt-4': typeof index === 'number' && index !== 0 }">{{ (group as TMenuGroup).label }}</h1>
           <ul v-bind:id="'menu-group-' + index" role="group" class="list-none pl-2">
-            <li role="none" v-for="item in group.items">
+            <li role="none" v-for="item in (group as TMenuGroup).items">
               <router-link role="menuitem" :to="item.to" class="text-gray-300 hover:text-gray-500"
                 v-on:click.native="onChooseMenuItem()">{{ item.label }}</router-link>
             </li>
@@ -51,10 +51,12 @@
   </div>
 </template>
 
-<script lang="ts">
-import { mapState } from "vuex";
-import Menu from 'vue-material-design-icons/Menu.vue';
+<script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
+import { useStore } from "vuex";
+import Menu from "vue-material-design-icons/Menu.vue";
 import Title from "../Title.vue";
+import { AthenaPlugin } from "../../store/docs";
 
 type TMenuItem = {
   to: string;
@@ -66,111 +68,70 @@ type TMenuGroup = {
 };
 type TMenu = TMenuGroup[];
 
-const menu: TMenu = [
+const baseMenu: TMenu = [
   {
-    label: 'General',
+    label: "General",
+    items: [{ to: "/docs/introduction", label: "Introduction" }],
+  },
+  {
+    label: "Configuration",
     items: [
-      {
-        to: '/docs/introduction',
-        label: 'Introduction',
-      },
+      { to: "/docs/configuration/configuration-format", label: "Configuration format" },
+      { to: "/docs/configuration/plugin-configuration", label: "Plugin configuration" },
+      { to: "/docs/configuration/permissions", label: "Permissions" },
     ],
   },
-
   {
-    label: 'Configuration',
-    items: [
-      {
-        to: '/docs/configuration/configuration-format',
-        label: 'Configuration format',
-      },
-      {
-        to: '/docs/configuration/plugin-configuration',
-        label: 'Plugin configuration',
-      },
-      {
-        to: '/docs/configuration/permissions',
-        label: 'Permissions',
-      },
-    ],
+    label: "Reference",
+    items: [{ to: "/docs/reference/argument-types", label: "Argument types" }],
   },
-
   {
-    label: 'Reference',
+    label: "Setup guides",
     items: [
-      {
-        to: '/docs/reference/argument-types',
-        label: 'Argument types',
-      },
-    ],
-  },
-
-  {
-    label: 'Setup guides',
-    items: [
-      {
-        to: '/docs/setup-guides/logs',
-        label: 'Logs',
-      },
-      {
-        to: '/docs/setup-guides/moderation',
-        label: 'Moderation',
-      },
-      {
-        to: '/docs/setup-guides/counters',
-        label: 'Counters',
-      },
+      { to: "/docs/setup-guides/logs", label: "Logs" },
+      { to: "/docs/setup-guides/moderation", label: "Moderation" },
+      { to: "/docs/setup-guides/counters", label: "Counters" },
     ],
   },
 ];
 
-export default {
-  components: { Menu, Title },
-  async mounted() {
-    await this.$store.dispatch("docs/loadAllPlugins");
-  },
+const store = useStore();
 
-  data() {
-    return {
-      mobileMenuOpen: false,
-    };
-  },
+const mobileMenuOpen = ref(false);
+const mainAnchor = ref<HTMLAnchorElement | null>(null);
 
-  methods: {
-    toggleMobileMenu() {
-      console.log('hi');
-      this.mobileMenuOpen = !this.mobileMenuOpen;
-    },
+const plugins = computed<AthenaPlugin[]>(() => store.state.docs.allPlugins);
 
-    onChooseMenuItem() {
-      this.mobileMenuOpen = false;
-      this.$refs['main-anchor'].focus();
-    },
-  },
+const pluginItems = (typ: string): TMenuItem[] => {
+  console.log(`trying to get type ${typ}`);
 
-  computed: {
-    ...mapState('docs', {
-      plugins: 'allPlugins',
-    }),
-    menu() {
-      return [
-        ...menu,
-        {
-          label: 'Plugins',
-          items: this.plugins.filter(plugin => plugin.info.type === "stable").map(plugin => ({
-            label: plugin.info.prettyName || plugin.name,
-            to: `/docs/plugins/${plugin.name}`,
-          })),
-        },
-        {
-          label: "Legacy Plugins",
-          items: this.plugins.filter(plugin => plugin.info.type === "legacy").map(plugin => ({
-            label: plugin.info.prettyName || plugin.name,
-            to: `/docs/plugins/${plugin.name}`,
-          })),
-        }
-      ];
-    },
-  },
-};
+  console.log(plugins.value)
+
+  return plugins.value
+    .filter((plugin) => plugin.info.type === typ)
+    .map((plugin) => {
+      console.log("p", plugin)
+      return {
+        label: plugin.info.prettyName || plugin.name,
+        to: `/docs/plugins/${plugin.name}`,
+      }
+    });
+}
+
+const menu = computed<TMenu>(() => [
+  ...baseMenu,
+  { label: "Plugins", items: pluginItems("stable") },
+  { label: "Legacy Plugins", items: pluginItems("legacy") },
+]);
+
+function toggleMobileMenu() {
+  mobileMenuOpen.value = !mobileMenuOpen.value;
+}
+
+function onChooseMenuItem() {
+  mobileMenuOpen.value = false;
+  mainAnchor.value?.focus();
+}
+
+onMounted(() => store.dispatch("docs/loadAllPlugins"));
 </script>

@@ -8,7 +8,7 @@ import (
 )
 
 func (h *Handler) AllPlugins(c *echo.Context) error {
-	return c.JSON(http.StatusOK, h.plugins)
+	return c.JSON(http.StatusOK, docs.All(h.plugins))
 }
 
 func (h *Handler) PluginByName(c *echo.Context) error {

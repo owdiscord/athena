@@ -4,8 +4,11 @@ import { DocsState, RootState } from "./types";
 
 export type AthenaPlugin = {
   name: string;
-  prettyName: string;
-  type: "stable" | "internal" | string;
+  info: {
+    prettyName: string;
+    type: "stable" | "internal" | string;
+    description?: string;
+  };
   defaultOptions: Record<string, string | boolean | number>;
   config: string;
   commands: Array<{

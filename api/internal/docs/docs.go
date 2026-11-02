@@ -10,13 +10,23 @@ import (
 //go:embed docs.json
 var rawDocsJSON []byte
 
+type PluginDocInfo struct {
+	PrettyName  string `json:"prettyName"`
+	Description string `json:"description"`
+	Typ         string `json:"type"`
+}
+
 type PluginDoc struct {
-	Name           string           `json:"name"`
-	PrettyName     string           `json:"prettyName"`
-	Typ            string           `json:"type"`
-	DefaultOptions map[string]any   `json:"defaultOptions"`
-	Config         string           `json:"config"`
-	Commands       []map[string]any `json:"commands"`
+	Name            string           `json:"name"`
+	Info            PluginDocInfo    `json:"info"`
+	DefaultOptions  map[string]any   `json:"defaultOptions"`
+	Config          string           `json:"configSchema"`
+	MessageCommands []map[string]any `json:"messageCommands"`
+}
+
+type PluginOverview struct {
+	Name string        `json:"name"`
+	Info PluginDocInfo `json:"info"`
 }
 
 func Parse() ([]PluginDoc, error) {
@@ -28,8 +38,17 @@ func Parse() ([]PluginDoc, error) {
 	return docs, nil
 }
 
-func All(docs []PluginDoc) []PluginDoc {
-	return docs
+func All(docs []PluginDoc) []PluginOverview {
+	overview := make([]PluginOverview, len(docs))
+
+	for i, doc := range docs {
+		overview[i] = PluginOverview{
+			Name: doc.Name,
+			Info: doc.Info,
+		}
+	}
+
+	return overview
 }
 
 func ByName(docs []PluginDoc, name string) *PluginDoc {
