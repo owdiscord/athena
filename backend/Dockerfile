@@ -7,7 +7,7 @@ RUN mkdir /athena
 RUN chown node:node /athena
 
 # Install pnpm
-RUN npm install -g pnpm@10.19.0
+RUN npm install -g pnpm@12.14.0
 
 USER node
 
@@ -43,7 +43,7 @@ RUN echo "${BUILD_TIME}" > /athena/.build-time
 
 FROM node:24-alpine AS main
 
-RUN npm install -g pnpm@10.19.0
+RUN npm install -g pnpm@12.14.0
 
 USER node
 COPY --from=build --chown=node:node /athena /zeppelin

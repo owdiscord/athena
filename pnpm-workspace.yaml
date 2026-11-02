@@ -3,16 +3,17 @@ packages:
   - shared
   - dashboard
 
+allowBuilds:
+  '@swc/core': true
+  bufferutil: true
+  pnpm: true
+  utf-8-validate: true
+
 minimumReleaseAge: 20160
 
 minimumReleaseAgeExclude:
   - vety
   - knub-command-manager
-
-onlyBuiltDependencies:
-  - '@swc/core'
-  - bufferutil
-  - utf-8-validate
 
 overrides:
   discord-api-types: 0.38.30
