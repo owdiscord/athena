@@ -3,8 +3,8 @@
     <header>
       <h1>Moderation</h1>
       <p>
-        Moderation in Zeppelin is multi-layered. On top of typical actions such
-        as warning, muting, kicking, and banning, Zeppelin allows moderators to
+        Moderation in Athena is multi-layered. On top of typical actions such
+        as warning, muting, kicking, and banning, Athena allows moderators to
         utilise flags; create alerts; set thresholds; and act as others.
       </p>
       <p>
@@ -28,15 +28,15 @@
 
     <h2>Moderation Commands</h2>
     <p>
-      So that your moderators may use Zeppelin moderation, you must define the
+      So that your moderators may use Athena moderation, you must define the
       moderator role id in the config, assign it a level (50), and enable the
       Mod actions plugin.
       <CodeBlock code-lang="yaml" trim="start">
         levels:
-          "PRETEND-ROLE-ID": 50 # Mod
+        "PRETEND-ROLE-ID": 50 # Mod
 
         plugins:
-          mod_actions: {}
+        mod_actions: {}
       </CodeBlock>
     </p>
     <p>
@@ -46,7 +46,7 @@
     </p>
 
     <h2>Sanction Notifications</h2>
-    <p>These config options define how Zeppelin will interact with the
+    <p>These config options define how Athena will interact with the
       members it sanctions (warns, kicks, bans).</p>
 
     <h3>DM Values</h3>
@@ -91,21 +91,21 @@
     </ul>
     <CodeBlock code-lang="yaml" trim="start">
       plugins:
-        mod_actions:
-          config:
-            dm_on_warn: false
-            message_on_warn: true
-            message_channel: "PRETEND-CHANNEL-ID"
+      mod_actions:
+      config:
+      dm_on_warn: false
+      message_on_warn: true
+      message_channel: "PRETEND-CHANNEL-ID"
 
-            dm_on_kick: true
+      dm_on_kick: true
 
-            dm_on_ban: true
-            tempban_message: |-
-              Dear {user.username},
+      dm_on_ban: true
+      tempban_message: |-
+      Dear {user.username},
 
-              As a result of {reason}, you have been banned from {guildName}
-              for {banTime}. We welcome you back provided you do not do this
-              again.
+      As a result of {reason}, you have been banned from {guildName}
+      for {banTime}. We welcome you back provided you do not do this
+      again.
     </CodeBlock>
 
     <h2>Alerts</h2>
@@ -117,10 +117,10 @@
     </p>
     <CodeBlock code-lang="yaml" trim="start">
       plugins:
-        mod_actions:
-          config:
-            alert_on_rejoin: true
-            alert_channel: "PRETEND-CHANNEL-ID"
+      mod_actions:
+      config:
+      alert_on_rejoin: true
+      alert_channel: "PRETEND-CHANNEL-ID"
     </CodeBlock>
 
     <h2>Thresholds</h2>
@@ -141,7 +141,7 @@
 
     <h2>Ban Message Deletion</h2>
     <p>
-      When a member is banned, Zeppelin automatically deletes the last day of
+      When a member is banned, Athena automatically deletes the last day of
       message history. You can extend this through the
       <code>ban_delete_message_days</code> option.
     </p>
@@ -149,9 +149,9 @@
 </template>
 
 <script lang="ts">
-  import CodeBlock from "./CodeBlock.vue";
+import CodeBlock from "./CodeBlock.vue";
 
-  export default {
-    components: { CodeBlock },
-  };
+export default {
+  components: { CodeBlock },
+};
 </script>

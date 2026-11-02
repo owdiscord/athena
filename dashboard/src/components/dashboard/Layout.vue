@@ -1,8 +1,6 @@
 <template>
-  <div class="dashboard container mx-auto px-2 py-2 md:px-6 md:py-6">
-    <Title title="Athena - Dashboard" />
-
-    <nav class="flex items-stretch flex-wrap pl-4 pr-2 py-1 border border-gray-700 rounded bg-gray-800 shadow-xl mb-8">
+  <nav class="pl-4 pr-2 py-3 border-b border-gray-700 bg-gray-800 shadow-xl mb-8">
+    <div class="container mx-auto flex items-stretch flex-wrap">
       <div class="flex-full md:flex-initial flex items-center">
         <img class="w-10 mr-5" src="/img/icon.svg" alt="" aria-hidden="true">
 
@@ -24,7 +22,11 @@
           </router-link>
         </div>
       </div>
-    </nav>
+    </div>
+  </nav>
+
+  <div class="dashboard container mx-auto px-2 py-2 md:px-6 md:py-6">
+    <Title title="Athena - Dashboard" />
 
     <div class="main-content">
       <router-view></router-view>

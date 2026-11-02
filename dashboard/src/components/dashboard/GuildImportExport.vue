@@ -3,7 +3,8 @@
     <h1>Import / Export</h1>
     <p>
       <strong>Note!</strong>
-      This feature is currently experimental. Make sure to always export a backup before importing server data. If you
+      This feature is currently experimental and <strong>not used by Athena.</strong>. Make sure to always export a
+      backup before importing server data. If you
       encounter any issues, please report them on the <a href="https://discord.gg/zeppelin">Zeppelin Discord Server</a>.
     </p>
 

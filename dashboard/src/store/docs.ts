@@ -2,6 +2,19 @@ import { Module } from "vuex";
 import { get } from "../api";
 import { DocsState, RootState } from "./types";
 
+export type AthenaPlugin = {
+  name: string;
+  prettyName: string;
+  type: "stable" | "internal" | string;
+  defaultOptions: Record<string, string | boolean | number>;
+  config: string;
+  commands: Array<{
+    permission: string;
+    signature?: Record<string, Record<string, string | boolean | number>>;
+    trigger: string | Array<string>;
+  }>;
+};
+
 export const DocsStore: Module<DocsState, RootState> = {
   namespaced: true,
 
@@ -17,10 +30,10 @@ export const DocsStore: Module<DocsState, RootState> = {
       if (state.loadingAllPlugins) return;
       commit("setAllPluginLoadStatus", true);
 
-      const plugins = await get("docs/plugins");
+      const plugins = (await get("docs/plugins")) as Array<AthenaPlugin>;
       plugins.sort((a, b) => {
-        const aName = (a.info.prettyName || a.name).toLowerCase();
-        const bName = (b.info.prettyName || b.name).toLowerCase();
+        const aName = (a.prettyName || a.name).toLowerCase();
+        const bName = (b.prettyName || b.name).toLowerCase();
         if (aName > bName) return 1;
         if (aName < bName) return -1;
         return 0;
@@ -30,19 +43,23 @@ export const DocsStore: Module<DocsState, RootState> = {
       commit("setAllPluginLoadStatus", false);
     },
 
-    async loadPluginData({ state, commit }, name) {
+    async loadPluginData({ state, commit }, name: string) {
       if (state.plugins[name]) return;
 
-      const data = await get(`docs/plugins/${name}`);
-      if (data && data.messageCommands) {
-        data.messageCommands.sort((a, b) => {
-          const aName = (Array.isArray(a.trigger) ? a.trigger[0] : a.trigger).toLowerCase();
-          const bName = (Array.isArray(b.trigger) ? b.trigger[0] : b.trigger).toLowerCase();
-          if (aName > bName) return 1;
-          if (aName < bName) return -1;
-          return 0;
-        });
-      }
+      const data = (await get(`docs/plugins/${name}`)) as AthenaPlugin;
+      // if (data && data.messageCommands) {
+      //   data.messageCommands.sort((a, b) => {
+      //     const aName = (
+      //       Array.isArray(a.trigger) ? a.trigger[0] : a.trigger
+      //     ).toLowerCase();
+      //     const bName = (
+      //       Array.isArray(b.trigger) ? b.trigger[0] : b.trigger
+      //     ).toLowerCase();
+      //     if (aName > bName) return 1;
+      //     if (aName < bName) return -1;
+      //     return 0;
+      //   });
+      // }
       commit("setPluginData", { name, data });
     },
   },

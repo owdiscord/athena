@@ -1,6 +1,6 @@
 <template>
   <div class="docs container mx-auto px-6 py-6">
-    <Title title="Zeppelin - Documentation" />
+    <Title title="Athena - Documentation" />
 
     <!-- Top bar -->
     <nav class="flex items-stretch pl-4 pr-2 py-1 border border-gray-700 rounded bg-gray-800 shadow-xl">
