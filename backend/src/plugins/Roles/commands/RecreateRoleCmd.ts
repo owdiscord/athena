@@ -75,7 +75,7 @@ export const RecreateRoleCmd = rolesCmd({
         position: currentRole.position,
         permissions: currentRole.permissions,
         mentionable: currentRole.mentionable,
-        icon: currentRole.icon,
+        icon: currentRole.iconURL(),
         unicodeEmoji: currentRole.unicodeEmoji,
       })
       .catch(
