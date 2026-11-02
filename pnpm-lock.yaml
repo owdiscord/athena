@@ -118,9 +118,6 @@ importers:
       pkg-up:
         specifier: ^3.1.0
         version: 3.1.0
-      pnpm:
-        specifier: 12.14.0
-        version: 12.14.0
       redis:
         specifier: ^5.9.0
         version: 5.9.0

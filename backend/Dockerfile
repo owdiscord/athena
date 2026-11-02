@@ -1,4 +1,4 @@
-FROM node:24 AS build
+FROM node:24-alpine AS build
 
 ARG COMMIT_HASH
 ARG BUILD_TIME
@@ -46,6 +46,6 @@ FROM node:24-alpine AS main
 RUN npm install -g pnpm@12.14.0
 
 USER node
-COPY --from=build --chown=node:node /athena /zeppelin
+COPY --from=build --chown=node:node /athena /athena
 
 WORKDIR /athena

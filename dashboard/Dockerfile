@@ -3,7 +3,7 @@ FROM node:24-alpine AS builder
 WORKDIR /app
 
 # Install pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm@12.14.0
 
 # Copy workspace manifests for layer caching
 COPY tsconfig.base.json ./
