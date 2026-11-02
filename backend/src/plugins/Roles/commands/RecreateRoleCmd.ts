@@ -2,6 +2,7 @@ import { RoleColorsResolvable } from "discord.js";
 import { commandTypeHelpers as ct } from "../../../commandTypes.js";
 import { resolveRoleId } from "../../../utils.js";
 import { LogsPlugin } from "../../Logs/LogsPlugin.js";
+import { Configs } from "../../../data/Configs.js";
 import { rolesCmd } from "../types.js";
 
 export const RecreateRoleCmd = rolesCmd({
@@ -62,9 +63,17 @@ export const RecreateRoleCmd = rolesCmd({
       return;
     }
 
+    const key = `guild-${pluginData.guild.id}`;
+    const configs = new Configs();
+    configs.swapRawValueInPlace(
+      key,
+      new RegExp(`(?<!\\d)${currentRole.id}(?!\\d)`, "g"),
+      created.id,
+    );
+
     pluginData.state.common.sendSuccessMessage(
       msg,
-      `Successfully recreated role **${created.name}**. New ID: \`${created.id}\``,
+      `Successfully recreated role **${created.name}**. New ID: \`${created.id}\`. Config modified, requires manual reload.`,
     );
   },
 });

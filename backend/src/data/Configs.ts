@@ -33,7 +33,7 @@ export class Configs extends BaseRepository {
     });
   }
 
-  getActiveByKey(key) {
+  getActiveByKey(key: string) {
     return this.configs.findOne({
       where: {
         key,
@@ -42,20 +42,35 @@ export class Configs extends BaseRepository {
     });
   }
 
+  async swapRawValueInPlace(key: string, oldValue: RegExp, newValue: string) {
+    const active = await this.getActiveByKey(key);
+    if (!active) throw "latest active key could not be found";
+
+    const updatedConfig = active.config.replace(oldValue, newValue);
+    active.config = updatedConfig;
+    this.configs.save(active);
+  }
+
   async getHighestId(): Promise<number> {
-    const rows = await dataSource.query("SELECT MAX(id) AS highest_id FROM configs");
+    const rows = await dataSource.query(
+      "SELECT MAX(id) AS highest_id FROM configs",
+    );
     return (rows.length && rows[0].highest_id) || 0;
   }
 
-  getActiveLargerThanId(id) {
-    return this.configs.createQueryBuilder().where("id > :id", { id }).andWhere("is_active = 1").getMany();
+  getActiveLargerThanId(id: number) {
+    return this.configs
+      .createQueryBuilder()
+      .where("id > :id", { id })
+      .andWhere("is_active = 1")
+      .getMany();
   }
 
-  async hasConfig(key) {
+  async hasConfig(key: string) {
     return (await this.getActiveByKey(key)) != null;
   }
 
-  getRevisions(key, num = 10) {
+  getRevisions(key: string, num = 10) {
     return this.configs.find({
       relations: this.getRelations(),
       where: { key },
@@ -67,7 +82,11 @@ export class Configs extends BaseRepository {
     });
   }
 
-  async saveNewRevision(key, config, editedBy) {
+  async saveNewRevision(
+    key: string,
+    config: string,
+    editedBy: number | string,
+  ) {
     return dataSource.transaction(async (entityManager) => {
       const repo = entityManager.getRepository(Config);
       // Mark all old revisions inactive
@@ -77,7 +96,7 @@ export class Configs extends BaseRepository {
         key,
         config,
         is_active: true,
-        edited_by: editedBy,
+        edited_by: `${editedBy}`,
       });
     });
   }
