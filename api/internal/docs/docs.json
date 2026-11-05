@@ -2768,7 +2768,7 @@
       "type": "stable"
     },
     "defaultOptions": {},
-    "configSchema": "{\n  announce_channel: string\n  message_score_threshold: number\n  time_score_threshold: number\n  time_tracking_message_threshold: number\n  message_decay_magnitude: number\n  message_decay_period: number\n  message_cooldown: number\n  regular_role: string\n  warn_delay_periods: number\n  mute_delay_periods: number\n  ban_delay_periods: number\n  time_score_period: number\n  can_use_trakt: boolean\n  can_modify_trakt: boolean\n}",
+    "configSchema": "{\n  announce_channel: string\n  message_score_threshold: number\n  time_score_threshold: number\n  time_tracking_message_threshold: number\n  message_decay_magnitude: number\n  message_decay_period: number\n  message_cooldown: number\n  regular_role: string\n  warn_delay_periods: number\n  mute_delay_periods: number\n  ban_delay_periods: number\n  time_score_period: number\n  can_use_trakt: boolean\n  can_modify_trakt: boolean\n  milestone_roles: {\n    [string]: string\n  }\n}",
     "slashCommands": [
       {
         "name": "regular",
@@ -2848,6 +2848,20 @@
       {
         "trigger": "trakt",
         "permission": "can_use_trakt"
+      },
+      {
+        "trigger": "milestones",
+        "permission": "can_use_trakt",
+        "signature": [
+          {
+            "cmd": {
+              "required": true
+            },
+            "user": {
+              "required": true
+            }
+          }
+        ]
       }
     ]
   },
