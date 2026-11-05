@@ -4,6 +4,7 @@ import { GuildTrakt } from "../../data/GuildTrakt.js";
 import { CommonPlugin } from "../../plugins/Common/CommonPlugin.js";
 import { BasePluginType, pluginUtils } from "vety";
 import { z } from "zod";
+import { convertDelayStringToMS } from "../../utils.js";
 
 export const zTraktConfig = z.strictObject({
   announce_channel: z.string(),
@@ -20,6 +21,21 @@ export const zTraktConfig = z.strictObject({
   time_score_period: z.number().default(86400),
   can_use_trakt: z.boolean().default(false),
   can_modify_trakt: z.boolean().default(false),
+  milestone_roles: z
+    .record(
+      z.string(),
+      z.string().transform((val, ctx) => {
+        const ms = convertDelayStringToMS(val);
+
+        if (!ms) {
+          ctx.addIssue(`invalid delay: ${val}`);
+          return z.NEVER;
+        }
+
+        return ms;
+      }),
+    )
+    .default({}),
 });
 
 export interface TraktPluginType extends BasePluginType {

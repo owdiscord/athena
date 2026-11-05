@@ -12,6 +12,7 @@ import { ModActionsPlugin } from "../../plugins/ModActions/ModActionsPlugin.js";
 import { MutesPlugin } from "../../plugins/Mutes/MutesPlugin.js";
 import {
   EditSlashCmd,
+  MilestonesMessageCmd,
   ReportSlashCmd,
   ResetSlashCmd,
   TraktMessageCmd,
@@ -41,7 +42,7 @@ export const TraktPlugin = guildPlugin<TraktPluginType>()({
     },
   ],
 
-  messageCommands: [TraktMessageCmd],
+  messageCommands: [TraktMessageCmd, MilestonesMessageCmd],
 
   slashCommands: [
     guildPluginSlashGroup<TraktPluginType>()({
@@ -54,7 +55,6 @@ export const TraktPlugin = guildPlugin<TraktPluginType>()({
 
   beforeLoad(pluginData) {
     const { state, guild } = pluginData;
-
     state.onTraktAssignmentFn = () => onTraktAssignment(pluginData);
     state.onMessageSaveFn = (msg: SavedMessage) =>
       trakMessageCreate(pluginData, msg);
@@ -157,18 +157,36 @@ async function applyRegular(
   }
   const channel = pluginData.guild.channels.cache.get(config.announce_channel);
   const roleManager = pluginData.getPlugin(RoleManagerPlugin);
+  const extraApplications: { role: string; user: string }[] = [];
   users.forEach(async (user) => {
     const id = String(user.snowflake);
     const lock = await pluginData.locks.acquire(memberRolesLock({ id: id }));
     roleManager.addRole(id, roleId);
+    const joinedAtDiff =
+      Date.now() -
+      ((await pluginData.guild.members.fetch(user.snowflake))
+        ?.joinedTimestamp || 0);
+    for (const [roleID, diff] of Object.entries(config.milestone_roles)) {
+      if (joinedAtDiff >= diff) {
+        roleManager.addRole(user.snowflake, roleID);
+        extraApplications.push({ user: user.snowflake, role: roleID });
+      }
+    }
     lock.unlock();
-    if (channel instanceof TextChannel) {
+  });
+
+  if (channel instanceof TextChannel) {
+    pluginData.state.common.sendSuccessMessage(
+      channel,
+      `Trakt has granted Regular to ${users.map((u) => `<@${u.snowflake}>`).join(", ")}`,
+    );
+
+    if (extraApplications.length > 0)
       pluginData.state.common.sendSuccessMessage(
         channel,
-        `Granted <@${id}> Regular.`,
+        `Additionally, the following users received milestone roles: ${extraApplications.map(({ user, role }) => `<@${user}> - <@&${role}>`).join(", ")}`,
       );
-    }
-  });
+  }
 
   for (const [user, time] of pluginData.state.cooldowns.entries()) {
     if (time > Date.now() + (config.message_cooldown + 1000) * 1.5) {
@@ -199,12 +217,13 @@ async function stripRegular(
     const lock = await pluginData.locks.acquire(memberRolesLock({ id: id }));
     roleManager.removeRole(id, roleId);
     lock.unlock();
-    if (channel instanceof TextChannel) {
-      pluginData.state.common.sendSuccessMessage(
-        channel,
-        `<@${id}> lost Regular for inactivity.`,
-      );
-    }
+  }
+
+  if (channel instanceof TextChannel) {
+    pluginData.state.common.sendSuccessMessage(
+      channel,
+      `Trakt has removed Regular from ${userSnowflakes.map((u) => `<@${u}>`).join(", ")} for inactivity.`,
+    );
   }
 }
 

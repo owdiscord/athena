@@ -1,3 +1,4 @@
+import { commandTypeHelpers as ct } from "../../../commandTypes.js";
 import { resolveMember } from "../../../utils.js";
 import {
   guildPluginMessageCommand,
@@ -6,6 +7,7 @@ import {
 } from "vety";
 import { TraktPluginType } from "../types.js";
 import { EmbedBuilder, MessageFlags } from "discord.js";
+import { RoleManagerPlugin } from "../../RoleManager/RoleManagerPlugin.js";
 
 export const ReportSlashCmd = guildPluginSlashCommand<TraktPluginType>()({
   name: "report",
@@ -167,3 +169,45 @@ export const TraktMessageCmd = guildPluginMessageCommand<TraktPluginType>()({
     });
   },
 });
+
+export const MilestonesMessageCmd =
+  guildPluginMessageCommand<TraktPluginType>()({
+    trigger: "milestones",
+    permission: "can_use_trakt",
+    signature: [
+      {
+        cmd: ct.string({ required: true }),
+        user: ct.resolvedMember({ required: true }),
+      },
+    ],
+    async run({ pluginData, message: msg, args }) {
+      const joinedAtDiff = Date.now() - (args.user.joinedTimestamp || 0);
+
+      const eligible = Object.entries(
+        pluginData.config.get().milestone_roles,
+      ).filter(([_, diffMs]) => joinedAtDiff >= diffMs);
+
+      if (args.cmd === "check") {
+        msg.channel.send(
+          `${args.user.displayName} is eligible for ${eligible.map(([roleID, _]) => `<@&${roleID}>`)}`,
+        );
+        return;
+      }
+
+      if (args.cmd === "apply") {
+        const roleManager = pluginData.getPlugin(RoleManagerPlugin);
+
+        for (const [roleID, _] of eligible) {
+          roleManager.addRole(args.user.id, roleID).catch((err) => {
+            console.error(`could not add role in milestone command: ${err}`);
+          });
+        }
+        msg.channel.send(
+          `Given milestone roles ${eligible.map(([roleID, _]) => `<@&${roleID}>`)} to ${args.user.displayName}`,
+        );
+        return;
+      }
+
+      msg.channel.send("Subcommand must be `check` or `apply`");
+    },
+  });
