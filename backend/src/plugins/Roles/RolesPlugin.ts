@@ -9,6 +9,7 @@ import { MassRemoveRoleCmd } from "./commands/MassRemoveRoleCmd.js";
 import { RemoveRoleCmd } from "./commands/RemoveRoleCmd.js";
 import { RecreateRoleCmd } from "./commands/RecreateRoleCmd.js";
 import { RolesPluginType, zRolesConfig } from "./types.js";
+import { onGuildEvent } from "data/GuildEvents.js";
 
 export const RolesPlugin = guildPlugin<RolesPluginType>()({
   name: "roles",
@@ -47,5 +48,18 @@ export const RolesPlugin = guildPlugin<RolesPluginType>()({
 
   beforeStart(pluginData) {
     pluginData.state.common = pluginData.getPlugin(CommonPlugin);
+  },
+
+  afterLoad(pluginData) {
+    const { state, guild } = pluginData;
+
+    state.unregisterExpiredRoleListener = onGuildEvent(
+      guild.id,
+      "expiredRole",
+      (role) =>
+        pluginData
+          .getPlugin(RoleManagerPlugin)
+          .removeRole(role.user_id, role.role_id),
+    );
   },
 });
