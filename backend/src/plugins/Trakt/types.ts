@@ -1,3 +1,4 @@
+import { SavedMessage } from "data/entities/SavedMessage.js";
 import { GuildSavedMessages } from "../../data/GuildSavedMessages.js";
 import { GuildTrakt } from "../../data/GuildTrakt.js";
 import { CommonPlugin } from "../../plugins/Common/CommonPlugin.js";
@@ -18,6 +19,7 @@ export const zTraktConfig = z.strictObject({
   ban_delay_periods: z.number(),
   time_score_period: z.number().default(86400),
   can_use_trakt: z.boolean().default(false),
+  can_modify_trakt: z.boolean().default(false),
 });
 
 export interface TraktPluginType extends BasePluginType {
@@ -29,6 +31,7 @@ export interface TraktPluginType extends BasePluginType {
     cooldowns: Map<string, number>;
     sweepTimer: NodeJS.Timeout;
 
-    onMessageSaveFn;
+    onMessageSaveFn: (msg: SavedMessage) => void;
+    onTraktAssignmentFn: () => void;
   };
 }

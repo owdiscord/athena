@@ -1,6 +1,11 @@
 import { resolveMember } from "../../../utils.js";
-import { guildPluginSlashCommand, slashOptions } from "vety";
+import {
+  guildPluginMessageCommand,
+  guildPluginSlashCommand,
+  slashOptions,
+} from "vety";
 import { TraktPluginType } from "../types.js";
+import { EmbedBuilder, MessageFlags } from "discord.js";
 
 export const ReportSlashCmd = guildPluginSlashCommand<TraktPluginType>()({
   name: "report",
@@ -16,7 +21,7 @@ export const ReportSlashCmd = guildPluginSlashCommand<TraktPluginType>()({
   ],
 
   async run({ interaction, options, pluginData }) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const member = await resolveMember(
       pluginData.client,
       pluginData.guild,
@@ -45,7 +50,7 @@ export const ReportSlashCmd = guildPluginSlashCommand<TraktPluginType>()({
 
 export const EditSlashCmd = guildPluginSlashCommand<TraktPluginType>()({
   name: "edit",
-  configPermission: "can_use_trakt",
+  configPermission: "can_modify_trakt",
   description: "Change regular tracking information for a user",
   signature: [
     slashOptions.string({
@@ -70,7 +75,7 @@ export const EditSlashCmd = guildPluginSlashCommand<TraktPluginType>()({
   ],
 
   async run({ interaction, options, pluginData }) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const member = await resolveMember(
       pluginData.client,
       pluginData.guild,
@@ -97,6 +102,7 @@ export const EditSlashCmd = guildPluginSlashCommand<TraktPluginType>()({
 
 export const ResetSlashCmd = guildPluginSlashCommand<TraktPluginType>()({
   name: "reset",
+  configPermission: "can_use_trakt",
   description: "Reset all regular tracking information for a user",
   signature: [
     slashOptions.user({
@@ -107,7 +113,7 @@ export const ResetSlashCmd = guildPluginSlashCommand<TraktPluginType>()({
   ],
 
   async run({ interaction, options, pluginData }) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const member = await resolveMember(
       pluginData.client,
       pluginData.guild,
@@ -119,5 +125,45 @@ export const ResetSlashCmd = guildPluginSlashCommand<TraktPluginType>()({
       interaction,
       `Forgot about **${member.user.username}**.`,
     );
+  },
+});
+
+export const TraktMessageCmd = guildPluginMessageCommand<TraktPluginType>()({
+  trigger: "trakt",
+  permission: "can_use_trakt",
+  async run({ pluginData, message: msg }) {
+    const { state, config } = pluginData;
+
+    const counts = await state.users.returnUserCounts(
+      config.get().message_score_threshold,
+      config.get().time_score_threshold,
+    );
+
+    const embed = new EmbedBuilder();
+    embed
+      .setColor(0x4ee3fa)
+      .setTitle("Trakt")
+      .addFields(
+        {
+          name: "Total users trakt",
+          value: counts.tracking.toString(),
+        },
+        {
+          name: "Users close to regular",
+          value: counts.close.toString(),
+          inline: true,
+        },
+        {
+          name: "Users with Trakt regular",
+          value: counts.has_trakt_regular.toString(),
+          inline: true,
+        },
+      )
+      .setDescription(
+        `- Message threshold: ${config.get().message_score_threshold}\n- Day threshold: ${config.get().time_score_threshold}`,
+      );
+    msg.channel.send({
+      embeds: [embed],
+    });
   },
 });

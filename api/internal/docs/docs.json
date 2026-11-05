@@ -2768,11 +2768,12 @@
       "type": "stable"
     },
     "defaultOptions": {},
-    "configSchema": "{\n  announce_channel: string\n  message_score_threshold: number\n  time_score_threshold: number\n  time_tracking_message_threshold: number\n  message_decay_magnitude: number\n  message_decay_period: number\n  message_cooldown: number\n  regular_role: string\n  warn_delay_periods: number\n  mute_delay_periods: number\n  ban_delay_periods: number\n  time_score_period: number\n  can_use_trakt: boolean\n}",
+    "configSchema": "{\n  announce_channel: string\n  message_score_threshold: number\n  time_score_threshold: number\n  time_tracking_message_threshold: number\n  message_decay_magnitude: number\n  message_decay_period: number\n  message_cooldown: number\n  regular_role: string\n  warn_delay_periods: number\n  mute_delay_periods: number\n  ban_delay_periods: number\n  time_score_period: number\n  can_use_trakt: boolean\n  can_modify_trakt: boolean\n}",
     "slashCommands": [
       {
         "name": "regular",
         "description": "Regular tracking",
+        "defaultMemberPermissions": "1099511627776",
         "subcommands": [
           {
             "name": "report",
@@ -2791,6 +2792,7 @@
           },
           {
             "name": "reset",
+            "configPermission": "can_use_trakt",
             "description": "Reset all regular tracking information for a user",
             "signature": [
               {
@@ -2798,6 +2800,42 @@
                 "description": "Username / Snowflake",
                 "required": true,
                 "type": 6
+              }
+            ],
+            "type": "slash"
+          },
+          {
+            "name": "edit",
+            "configPermission": "can_modify_trakt",
+            "description": "Change regular tracking information for a user",
+            "signature": [
+              {
+                "name": "snowflake",
+                "description": "User ID",
+                "required": true,
+                "type": 3
+              },
+              {
+                "name": "type",
+                "description": "Which score to change",
+                "required": true,
+                "choices": [
+                  {
+                    "value": "message_score",
+                    "name": "Message score"
+                  },
+                  {
+                    "value": "time_score",
+                    "name": "Time score"
+                  }
+                ],
+                "type": 3
+              },
+              {
+                "name": "value",
+                "description": "New value for this score",
+                "required": true,
+                "type": 4
               }
             ],
             "type": "slash"

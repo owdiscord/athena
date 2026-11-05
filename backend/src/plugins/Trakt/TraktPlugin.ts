@@ -1,21 +1,21 @@
-import {
-  guildPlugin,
-  GuildPluginData,
-  guildPluginMessageCommand,
-  guildPluginSlashGroup,
-} from "vety";
+import { guildPlugin, GuildPluginData, guildPluginSlashGroup } from "vety";
 import { TraktPluginType, zTraktConfig } from "./types.js";
 import { GuildTrakt } from "../../data/GuildTrakt.js";
 import { GuildSavedMessages } from "../../data/GuildSavedMessages.js";
 import { resolveMember, resolveRoleId } from "../../utils.js";
-import { Snowflake, TextChannel } from "discord.js";
+import { PermissionFlagsBits, Snowflake, TextChannel } from "discord.js";
 import { CommonPlugin } from "../../plugins/Common/CommonPlugin.js";
 import { TraktUser } from "../../data/entities/TraktUser.js";
 import { memberRolesLock } from "../../utils/lockNameHelpers.js";
 import { RoleManagerPlugin } from "../../plugins/RoleManager/RoleManagerPlugin.js";
 import { ModActionsPlugin } from "../../plugins/ModActions/ModActionsPlugin.js";
 import { MutesPlugin } from "../../plugins/Mutes/MutesPlugin.js";
-import { ReportSlashCmd, ResetSlashCmd } from "./commands/TraktCommands.js";
+import {
+  EditSlashCmd,
+  ReportSlashCmd,
+  ResetSlashCmd,
+  TraktMessageCmd,
+} from "./commands/TraktCommands.js";
 import { SavedMessage } from "../../data/entities/SavedMessage.js";
 import { onGuildEvent } from "../../data/GuildEvents.js";
 
@@ -33,39 +33,32 @@ export const TraktPlugin = guildPlugin<TraktPluginType>()({
         can_use_trakt: true,
       },
     },
+    {
+      level: ">=100",
+      config: {
+        can_modify_trakt: true,
+      },
+    },
   ],
 
-  messageCommands: [
-    guildPluginMessageCommand<TraktPluginType>()({
-      trigger: "trakt",
-      permission: "can_use_trakt",
-      async run({ pluginData, message: msg }) {
-        const { state, config } = pluginData;
-        msg.channel.send(
-          `Trakt is enabled and tracking ${await state.users.countTrackedUsers()} users.
-\`\`\`
-+----------------------+----------------+
-| Message threshold    | ${config.get().message_score_threshold.toString().padEnd(14, " ")} | 
-| Time threshold (day) | ${config.get().time_score_threshold.toString().padEnd(14, " ")} |
-+----------------------+----------------+
-\`\`\``,
-        );
-      },
-    }),
-  ],
+  messageCommands: [TraktMessageCmd],
 
   slashCommands: [
     guildPluginSlashGroup<TraktPluginType>()({
       name: "regular",
       description: "Regular tracking",
-      subcommands: [ReportSlashCmd, ResetSlashCmd],
+      defaultMemberPermissions: PermissionFlagsBits.ModerateMembers.toString(),
+      subcommands: [ReportSlashCmd, ResetSlashCmd, EditSlashCmd],
     }),
   ],
 
   beforeLoad(pluginData) {
     const { state, guild } = pluginData;
+
+    state.onTraktAssignmentFn = () => onTraktAssignment(pluginData);
     state.onMessageSaveFn = (msg: SavedMessage) =>
       trakMessageCreate(pluginData, msg);
+
     state.users = GuildTrakt.getGuildInstance(guild.id);
     state.savedMessages = GuildSavedMessages.getGuildInstance(guild.id);
     state.cooldowns = new Map();
@@ -77,31 +70,27 @@ export const TraktPlugin = guildPlugin<TraktPluginType>()({
 
   async afterLoad(pluginData) {
     const { state, guild } = pluginData;
-    const { message_score_threshold, time_score_threshold } =
-      pluginData.config.get();
 
+    // Create our first tick state if necessary - this
+    // silently fails if it already exists in the database.
     state.users.tryCreateFirstTickState();
 
-    onGuildEvent(guild.id, "traktAssignment", async () => {
-      // Apply regular to newly-qualified users
-      const qualified = await state.users.regularSweep(
-        message_score_threshold,
-        time_score_threshold,
-      );
-      await applyRegular(pluginData, qualified);
+    onGuildEvent(guild.id, "traktAssignment", state.onTraktAssignmentFn);
 
-      // Strip regular from now-unworthy users, and tick down if necessary.
-      const revoked = await pluginData.state.users.tryDecay(
-        10,
-        config.time_score_threshold,
-        config.message_decay_magnitude,
-      );
-      stripRegular(pluginData, revoked);
-      console.log(
-        `[TRAKT] ${qualified.length} user(s) receive regular, ${revoked.length} no longer qualified.`,
-      );
-    });
+    // Listen for when a message is created, and run our handler
+    pluginData.state.savedMessages.events.on(
+      "create",
+      pluginData.state.onMessageSaveFn,
+    );
 
+    /*
+     * Mod action handling
+     **/
+    const modActionsEvents = pluginData
+      .getPlugin(ModActionsPlugin)
+      .getEventEmitter();
+
+    // Sanction users when they receive a **Mute**
     pluginData
       .getPlugin(MutesPlugin)
       .getEventEmitter()
@@ -109,42 +98,46 @@ export const TraktPlugin = guildPlugin<TraktPluginType>()({
         const config = pluginData.config.get();
         pluginData.state.users.sanction(userId, config.mute_delay_periods);
       });
-    const modActionsEvents = pluginData
-      .getPlugin(ModActionsPlugin)
-      .getEventEmitter();
 
-    pluginData.state.savedMessages.events.on(
-      "create",
-      pluginData.state.onMessageSaveFn,
-    );
-
+    // Sanction users when the **Warn** mod action is executed
     modActionsEvents.on("warn", (userId, _reason, _isAutomodAction) => {
       const config = pluginData.config.get();
       pluginData.state.users.warn(userId, config.warn_delay_periods);
     });
+
+    // Sanction users when the **Ban** mod action is executed
     modActionsEvents.on("ban", (userId, _reason, _isAutomodAction) => {
       const config = pluginData.config.get();
       pluginData.state.users.sanction(userId, config.ban_delay_periods);
     });
-    const config = pluginData.config.get();
-    // pluginData.state.sweepTimer = setInterval(async () => {
-    //   console.log(`[TRAKT] Sweeping (at ${new Date().toISOString()})`);
-    //   try {
-    //     const revoked = await pluginData.state.users.tryDecay(
-    //       10,
-    //       config.message_score_threshold,
-    //       config.message_decay_magnitude,
-    //     );
-    //     stripRegular(pluginData, revoked);
-    //     const qualifiedUsers = await pluginData.state.users.regularSweep(
-    //       config.message_score_threshold,
-    //       config.time_score_threshold,
-    //     );
-    //     applyRegular(pluginData, qualifiedUsers);
-    //   } catch (error) {}
-    // }, config.message_decay_period * 1000);
   },
 });
+
+async function onTraktAssignment(pluginData: GuildPluginData<TraktPluginType>) {
+  const { state, config } = pluginData;
+  const {
+    message_score_threshold,
+    time_score_threshold,
+    message_decay_magnitude,
+  } = config.get();
+  // Apply regular to newly-qualified users
+  const qualified = await state.users.regularSweep(
+    message_score_threshold,
+    time_score_threshold,
+  );
+  await applyRegular(pluginData, qualified);
+
+  // Strip regular from now-unworthy users, and tick down if necessary.
+  const revoked = await pluginData.state.users.tryDecay(
+    10,
+    time_score_threshold,
+    message_decay_magnitude,
+  );
+  stripRegular(pluginData, revoked);
+  console.log(
+    `[TRAKT] ${qualified.length} user(s) receive regular, ${revoked.length} no longer qualified.`,
+  );
+}
 
 async function applyRegular(
   pluginData: GuildPluginData<TraktPluginType>,

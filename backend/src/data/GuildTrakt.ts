@@ -11,6 +11,19 @@ export class GuildTrakt extends BaseGuildRepository {
     this.users = dataSource.getRepository(TraktUser);
   }
 
+  async returnUserCounts(
+    messageScoreThreshold: number,
+    timeScoreThreshold: number,
+  ): Promise<{ has_trakt_regular: number; close: number; tracking: number }> {
+    const [row] = await this.users.sql`SELECT 
+      SUM(CASE WHEN has_regular IS TRUE THEN 1 ELSE 0 END) AS has_trakt_regular,
+      SUM(CASE WHEN message_score >= ${messageScoreThreshold - 10} AND time_score >= ${timeScoreThreshold - 2} THEN 1 ELSE 0 END) AS close,
+      COUNT(*) AS tracking
+    FROM trakt_users`;
+
+    return row;
+  }
+
   async countTrackedUsers(): Promise<number> {
     return (
       this.users.count({
