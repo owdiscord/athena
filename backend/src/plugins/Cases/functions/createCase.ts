@@ -71,7 +71,7 @@ export async function createCase(pluginData: GuildPluginData<CasesPluginType>, a
     ((!args.automatic || config.log_automatic_actions) && args.postInCaseLogOverride !== false);
 
   if (config.case_log_channel && shouldPostToCaseLogChannel) {
-    await postCaseToCaseLogChannel(pluginData, createdCase);
+    await postCaseToCaseLogChannel(pluginData, createdCase, args.automatic);
   }
 
   return createdCase;
