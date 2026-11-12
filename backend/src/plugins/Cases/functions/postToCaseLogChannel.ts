@@ -8,6 +8,8 @@ import { LogsPlugin } from "../../Logs/LogsPlugin.js";
 import { CasesPluginType } from "../types.js";
 import { getCaseEmbed } from "./getCaseEmbed.js";
 import { resolveCaseId } from "./resolveCaseId.js";
+import { CaseTypes } from "data/CaseTypes.js";
+import { addUnmuteContextButton } from "./createCaseButtons.js";
 
 export async function postToCaseLogChannel(
   pluginData: GuildPluginData<CasesPluginType>,
@@ -48,6 +50,7 @@ export async function postToCaseLogChannel(
 export async function postCaseToCaseLogChannel(
   pluginData: GuildPluginData<CasesPluginType>,
   caseOrCaseId: Case | number,
+  automatic: boolean = false,
 ): Promise<void> {
   const theCase = await pluginData.state.cases.find(resolveCaseId(caseOrCaseId));
   if (!theCase) return;
@@ -77,6 +80,13 @@ export async function postCaseToCaseLogChannel(
       await pluginData.state.cases.update(theCase.id, {
         log_message_id: `${postedMessage.channelId}-${postedMessage.id}`,
       });
+      if (theCase.type == CaseTypes.Mute && automatic) {
+        const channel = pluginData.guild.channels.resolve(postedMessage.channelId as Snowflake)
+        if (channel?.isTextBased()) {
+          const message = await channel.messages.fetch(postedMessage.id)
+          addUnmuteContextButton(message, theCase.user_id)
+        }
+      }
     }
   } catch {
     pluginData.getPlugin(LogsPlugin).logBotAlert({
